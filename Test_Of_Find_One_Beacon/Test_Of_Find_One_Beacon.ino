@@ -4,12 +4,12 @@
 arduinoFFT FFT = arduinoFFT();
 #define CHANNEL A0
 
-#define SAMPLES 128
+#define SAMPLES 128 // WE HAVE TO SET THIS
 #define NUM_BINS 64 // Number of Bins is always half of Number of Samples
-#define SAMPLING_FREQUENCY 40000 
+#define SAMPLING_FREQUENCY 40000 // The sampling frequency has to be ATLEAST 2x larger than the largest signal. Since professor will give us at most 20kHz, the sampling frequency is set to 40kHz.
 
 
-const uint16_t samples = SAMPLES; //This value MUST ALWAYS be a power of 2
+const uint16_t samples = SAMPLES; // This value MUST ALWAYS be a power of 2
 const double samplingFrequency = SAMPLING_FREQUENCY;
 
 unsigned int sampling_period_us;
@@ -21,6 +21,7 @@ double vImag[samples];
 int state = 0;
 double previousvReal = 0;
 
+
 void setup() {
   // put your setup code here, to run once:
   sampling_period_us = round(1000000*(1.0/samplingFrequency));
@@ -31,6 +32,7 @@ void setup() {
   analogWriteResolution(10);       // set the resolution to 10 bits
 }
 
+
 void loop() {
   // put your main code here, to run repeatedly:
   double freqmaxvReal = 0;
@@ -38,7 +40,7 @@ void loop() {
   double freq[NUM_BINS] = {0};
   
 
-  /* Sample the data */
+  /*** Sample the data ****************************************************************/
   for(int i=0; i<samples; i++)
   {
       microseconds = micros();    //Overflows after around 70 minutes!
@@ -48,13 +50,17 @@ void loop() {
       while(micros() < (microseconds + sampling_period_us)){
       }
   }
+  /*************************************************************************************************/
+  
 
-  /* Compute the FFT */
+  /*** Compute the FFT *********************************************************************/
   FFT.Windowing(vReal, samples, FFT_WIN_TYP_HAMMING, FFT_FORWARD);  /* Weigh data */
   FFT.Compute(vReal, vImag, samples, FFT_FORWARD); /* Compute FFT */
   FFT.ComplexToMagnitude(vReal, vImag, samples); /* Compute magnitudes */
+  /*************************************************************************************************/
 
-  /* Print the magnitudes, and then put the abscissa (which is the frequency) in the freq array */
+
+  /*** Print the magnitudes, and then put the abscissa (which is the frequency) in the freq array ***/
   Serial.println("Computed magnitudes:");
   for (uint16_t i = 0; i < NUM_BINS; i++)
   {
@@ -66,14 +72,18 @@ void loop() {
     Serial.println(vReal[i], 4);
   }
   Serial.println();
+  /*************************************************************************************************/
 
-  /* The magnitudes in the bins with frequency less than 1000 are very high. We want to ignore these values. */
+
+  /*** The magnitudes in the bins with frequency less than 1000 are very high. We want to ignore these values. ***/
   for (int i = 0; freq[i] < 1000; i++)
   {
     vReal[i] = 0;
   }
+  /*************************************************************************************************/
 
-  /* In this for loop, we are looking for the vReal element with the largest magnitude. */
+
+  /*** In this for loop, we are looking for the vReal element with the largest magnitude. ***/
   for(int j = 0; j < sizeof(freq); j++)
   {
     if (vReal[j]>maxvReal) // If we come across a magnitude that is larger than all the previous, do the following:
@@ -82,9 +92,9 @@ void loop() {
       freqmaxvReal = freq[j]; // Assign the frequency that is assoiciated with that magnitude to freqvmazReal variable.
     }
   }
+  /*************************************************************************************************/
 
-  /* If maxvReal is larger than the previousvReal, then we have to keep turning the robot to find the with the strongest signal. 
-  */
+  /*** If maxvReal is larger than the previousvReal, then we have to keep turning the robot to find the with the strongest signal. ***/
   if ((maxvReal > previousvReal) && (state == 0))
   {
     state = 0;
