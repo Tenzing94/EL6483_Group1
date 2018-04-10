@@ -120,7 +120,7 @@ void loop() {
 
   previousvReal = maxvReal; // Assign the current maxVreal to the previousvReal so that that value can be used in the next loop
 
-  // I think the state variable should be reset to zero here
+  /////////////////////// I think the state variable should be reset to zero here ////////////////////////////
   
 }
 
