@@ -19,7 +19,7 @@ double vReal[samples];
 double vImag[samples];
 
 int state = 0;
-double previousvReal = 0;
+static double previousvReal = 0;
 
 
 void setup() {
@@ -60,40 +60,10 @@ void loop() {
   /*************************************************************************************************/
 
 
-  /*** Print the magnitudes, and then put the abscissa (which is the frequency) in the freq array ***/
-  Serial.println("Computed magnitudes:");
-  for (uint16_t i = 0; i < NUM_BINS; i++)
-  {
-    freq[i] = ((i * 1.0 * samplingFrequency) / samples);
-    
-    Serial.print(freq[i], 6);
-    Serial.print("Hz");
-    Serial.print(" ");
-    Serial.println(vReal[i], 4);
-  }
-  Serial.println();
-  /*************************************************************************************************/
-
-
-  /*** The magnitudes in the bins with frequency less than 1000 are very high. We want to ignore these values. ***/
-  for (int i = 0; freq[i] < 1000; i++)
-  {
-    vReal[i] = 0;
-  }
-  /*************************************************************************************************/
-
-
-  /*** In this for loop, we are looking for the vReal element with the largest magnitude. ***/
-  for(int j = 0; j < sizeof(freq); j++)
-  {
-    if (vReal[j]>maxvReal) // If we come across a magnitude that is larger than all the previous, do the following:
-    {
-      maxvReal = vReal[j]; // Assign that magnitude to the maxvReal variable
-      freqmaxvReal = freq[j]; // Assign the frequency that is assoiciated with that magnitude to freqvmazReal variable.
-    }
-  }
-  /*************************************************************************************************/
-
+  maxvReal = vReal[16];
+  Serial.println(vReal[16], 4);
+  
+  delay(1000);
   /*** If maxvReal is larger than the previousvReal, then we have to keep turning the robot to find the with the strongest signal. ***/
   if ((maxvReal > previousvReal) && (state == 0))
   {
@@ -107,20 +77,19 @@ void loop() {
 
   if (state == 0)
   {
-    analogWrite(3,76);      // state 0, so we have it turning until the previous point is higher than current point
-    analogWrite(4,96);
-    delay(1000);
+    analogWrite(3,61);      // state 0, so we have it turning until the previous point is higher than current point
+    analogWrite(4,61);
+    delay(500);
   }
   else if (state == 1); // state == 1 means that we have found the direction of the signal, so we move towards it
   {
-    analogWrite(3,45);
-    analogWrite(4,96);
-    delay(1000);
+    analogWrite(3,60);
+    analogWrite(4,92);
+    delay(500);
   }
 
   previousvReal = maxvReal; // Assign the current maxVreal to the previousvReal so that that value can be used in the next loop
 
-  /////////////////////// I think the state variable should be reset to zero here ////////////////////////////
+  state = 0;
   
 }
-
