@@ -19,7 +19,7 @@ double vReal[samples];
 double vImag[samples];
 
 int state = 0;
-static double previousvReal = 0;
+double previousMyReal = 0;
 
 
 void setup() {
@@ -60,18 +60,18 @@ void loop() {
   /*************************************************************************************************/
 
 
-  myReal = vReal[16];
-  Serial.println(vReal[16], 4);
+  myReal = vReal[16]; /* Lets say the first beacon is emmitting a 5kHz Sine wave. The bin with index 16 refers to that */
+  //Serial.println(vReal[16], 4);
   
-  /*** If myReal is larger than the previousvReal, then we have to keep turning the robot to find the with the strongest signal. ***/
-  if ((myReal > previousvReal) && (state == 0))
+  /*** If myReal is larger than the previousMyReal, then we have to keep turning the robot to find the with the strongest signal. ***/
+  if ((myReal > previousMyReal) && (state == 0))
   {
     state = 0;
   }
   else
   {
     state = 1;
-    previousvReal = 0;
+    previousMyReal = 0;
   }
 
   if (state == 0)
@@ -87,6 +87,7 @@ void loop() {
     delay(500);
   }
 
-  previousvReal = myReal; // Assign the current maxVreal to the previousvReal so that that value can be used in the next loop
-  
+  previousMyReal = myReal; // Assign the current myReal to the previousMyReal so that that value can be used in the next loop
+  analogWrite(3, 76); // 76 means STOP
+  analogWrite(4, 76); // 76 means STOP 
 }
