@@ -14,9 +14,9 @@ arduinoFFT FFT = arduinoFFT();
 #define CHANNEL A0
 
 #define SAMPLES 128 // WE HAVE TO SET THIS
-#define SAMPLING_FREQUENCY 40000 // The sampling frequency has to be ATLEAST 2x larger than the largest signal. Since professor will give us at most 20kHz, the sampling frequency is set to 40kHz.
+#define SAMPLING_FREQUENCY 40000 // The sampling frequency has to be ATLEAST 2x larger than the largest signal.
 #define SAMPLE_PERIOD (float) 11
-#define MARGIN (double) 0.0
+#define MARGIN (double) 1.0
 
 const uint16_t samples = SAMPLES; // This value MUST ALWAYS be a power of 2
 const double samplingFrequency = SAMPLING_FREQUENCY;
@@ -39,7 +39,7 @@ double temp;
 
 
 void setup() {
-  // put your setup code here, to run once:
+  // put your setup code here, to run once
   //sampling_period_us = round(1000000*(1.0/samplingFrequency));
   Serial.begin(115200);
 
@@ -86,8 +86,8 @@ void loop() {
  /**********************************************************************************************/
 
  
-  myReal = vReal[16]; /* Lets say the first beacon is emmitting a 5kHz Sine wave. The bin with index 16 refers to that */
-
+  myReal = vReal[16]; //Lets say the beacon is emmitting a 5kHz Sine wave. The bin with index 16 refers to that.
+  
   // find the direction of the frequency
   if (chk == 0)
   {
@@ -151,6 +151,7 @@ void loop() {
     analogWrite(4,94);
     Serial.println("5. I'm in the GOING TOWARDS THE LAST BEACON if statement.");
   }
+  
   prevMyReal = myReal;
-  Serial.println("*** THIS IS THE END OF THIS LOOP ***");
+  Serial.println("//////////////////// THIS IS THE END OF THIS LOOP ////////////////////");
 }
