@@ -13,10 +13,10 @@
 arduinoFFT FFT = arduinoFFT();
 #define CHANNEL A0
 
-#define SAMPLES 128 // WE HAVE TO SET THIS
+#define SAMPLES 64
 #define SAMPLING_FREQUENCY 40000 // The sampling frequency has to be ATLEAST 2x larger than the largest signal.
 #define SAMPLE_PERIOD (float) 11
-#define MARGIN (double) 1.0
+#define MARGIN 2
 
 const uint16_t samples = SAMPLES; // This value MUST ALWAYS be a power of 2
 const double samplingFrequency = SAMPLING_FREQUENCY;
@@ -34,15 +34,17 @@ int turn = 0;
 double prevMyReal = 0;
 int max_value = 0;
 
-
 double temp;
 
+double myReal;
 
 void setup() {
   // put your setup code here, to run once
   //sampling_period_us = round(1000000*(1.0/samplingFrequency));
   Serial.begin(115200);
 
+  sampling_period_us = round(1000000*(1.0/samplingFrequency)); ///////////////////////////////////////////
+  
   analogWriteFrequency(3,50);      // set the frequency of pin 3 to 50Hz
   analogWriteFrequency(4,50);      // set the frequency of pin 4 to 50Hz
   analogWriteResolution(10);       // set the resolution to 10 bits
@@ -51,15 +53,20 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  double myReal = 0;
+  myReal = 0;
 
   /*** Sample the data ****************************************************************/
   for (int i = 0; i < SAMPLES; i++)
   {
-    temp = analogRead(CHANNEL);
+    microseconds = micros(); ////////////////////////////////////////////////////////
+    
+    temp = analogRead(CHANNEL); 
     vReal[i] =  ((temp * 3.3) / 1024) - 1.65;
     vImag[i] = 0;
-    delayMicroseconds(SAMPLE_PERIOD);
+    //delayMicroseconds(SAMPLE_PERIOD);
+    while(micros() < (microseconds + sampling_period_us)){
+      //empty loop
+      }
   }
   /*************************************************************************************************/
   
@@ -70,10 +77,11 @@ void loop() {
   FFT.ComplexToMagnitude(vReal, vImag, samples); /* Compute magnitudes */
   /*************************************************************************************************/
 
-  /*** Print out the values of the bins ************************************************************/
-  /*
+  /*** Print out the values of ALL BINS ************************************************************/
+  /* 
   for (uint16_t k = 0; k < (SAMPLES / 2); k++)
   {
+    Serial.println(k); //Bin Index
     double abscissa;
     abscissa = ((k * 1.0 * SAMPLING_FREQUENCY) / SAMPLES);
     Serial.print(abscissa, 2);
@@ -82,37 +90,48 @@ void loop() {
   }
   Serial.println("");
   delay(1000);
-*/
+  */
+  /**********************************************************************************************/
+
+  /*** Print out the value of ONE BIN ************************************************************/ 
+  /*
+  double abscissa;
+  abscissa = ((128 * 1.0 * SAMPLING_FREQUENCY) / SAMPLES);
+    Serial.print(abscissa, 2);
+    Serial.print("Hz: ");
+    Serial.println(vReal[128], 4);
+    delay(1000);
+  */
  /**********************************************************************************************/
 
- 
-  myReal = vReal[16]; //Lets say the beacon is emmitting a 5kHz Sine wave. The bin with index 16 refers to that.
+  myReal = vReal[8]; // Bin corresponding to 5k Hz.
   
   // find the direction of the frequency
   if (chk == 0)
   {
     analogWrite(3,58);
     analogWrite(4,58);
-    delay(250);
+    delay(1000);
     chk = 1;
     Serial.println("1. I'm in the CHECK if statement.");
   }
-  else if ((found_direction == 0) && (chk == 1))
+  else if ((found_direction == 0) && (found_maximum == 0) && (chk == 1))
   {
-    if ((prevMyReal + MARGIN) > myReal)
+    if (prevMyReal > (myReal + MARGIN))
     {
       turn = 2;
+      found_direction = 1;
     }
-    else
+    else if (prevMyReal < (myReal - MARGIN))
     {
       turn = 1;
+      found_direction = 1;
     }
-    found_direction = 1;
     Serial.println("2. I'm in the FOUND_DIRECTION if statement.");
   }
  
 
-  if ((found_direction == 1) && (found_maximum == 0) && (chk == 1))
+  if ((found_direction == 1) && (found_maximum == 0) && (chk == 1) && (turn != 0))
   {
     if (turn == 1)
     {
@@ -126,19 +145,19 @@ void loop() {
     }
     Serial.println("3. I'm in the FINDING THE MAXIMUM if statement.");
 
-    if((prevMyReal + MARGIN) > myReal)
+    if(prevMyReal > (myReal+ MARGIN))
     {
       if (turn == 1)
       {
         analogWrite(3,95);
         analogWrite(4,95);
-        delay(250);
+        delay(1000);
       }
       else if (turn == 2)
       {
         analogWrite(3,58);
         analogWrite(4,58);
-        delay(250);
+        delay(1000);
       }
       found_maximum = 1;
       Serial.println("4. I'm in the FOUND THE MAXIMUM if statement.");

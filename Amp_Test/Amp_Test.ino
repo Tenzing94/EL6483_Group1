@@ -8,7 +8,7 @@
 #define ADC0_SC2  (volatile int*) 0x4003B020
 #define ADC0_RA   (volatile int*) 0x4003B010
 #define ADC0_RB   (volatile int*) 0x4003B014
-#define SAMPLES   (uint16_t) 128
+#define SAMPLES   (uint16_t) 64
 #define SAMPLE_PERIOD (float) 11
 #define SAMPLE_FREQUENCY (float) 1/(0.000025)
 
