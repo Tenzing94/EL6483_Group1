@@ -5,11 +5,12 @@ arduinoFFT FFT = arduinoFFT(); /* Create FFT object */
 These values can be changed in order to evaluate the functions
 */
 #define CHANNEL A0
-const uint16_t samples = 64; //This value MUST ALWAYS be a power of 2
+const uint16_t samples = 128; //This value MUST ALWAYS be a power of 2
 const double samplingFrequency = 50000; //Hz, must be less than 10000 due to ADC
 
 unsigned int sampling_period_us;
 unsigned long microseconds;
+double temp;
 
 /*
 These are the input and output vectors
@@ -17,6 +18,7 @@ Input vectors receive computed results from FFT
 */
 double vReal[samples];
 double vImag[samples];
+
 
 void setup()
 {
@@ -32,7 +34,8 @@ void loop()
   {
       microseconds = micros();    //Overflows after around 70 minutes!
 
-      vReal[i] = analogRead(CHANNEL);
+      temp = analogRead(CHANNEL);
+      vReal[i] =  ((temp * 3.3) / 1024) - 1.65;
       vImag[i] = 0;
       while(micros() < (microseconds + sampling_period_us)){
         //empty loop

@@ -78,10 +78,10 @@ void loop() {
   /*************************************************************************************************/
 
   /*** Print out the values of ALL BINS ************************************************************/
-  /* 
+   
   for (uint16_t k = 0; k < (SAMPLES / 2); k++)
   {
-    Serial.println(k); //Bin Index
+    //Serial.println(k); //Bin Index
     double abscissa;
     abscissa = ((k * 1.0 * SAMPLING_FREQUENCY) / SAMPLES);
     Serial.print(abscissa, 2);
@@ -90,20 +90,20 @@ void loop() {
   }
   Serial.println("");
   delay(1000);
-  */
+  
   /**********************************************************************************************/
 
   /*** Print out the value of ONE BIN ************************************************************/ 
-  /*
+  
   double abscissa;
   abscissa = ((128 * 1.0 * SAMPLING_FREQUENCY) / SAMPLES);
     Serial.print(abscissa, 2);
     Serial.print("Hz: ");
     Serial.println(vReal[128], 4);
     delay(1000);
-  */
+  
  /**********************************************************************************************/
-
+/*
   myReal = vReal[8]; // Bin corresponding to 5k Hz.
   
   // find the direction of the frequency
@@ -173,4 +173,5 @@ void loop() {
   
   prevMyReal = myReal;
   Serial.println("//////////////////// THIS IS THE END OF THIS LOOP ////////////////////");
+  */
 }
