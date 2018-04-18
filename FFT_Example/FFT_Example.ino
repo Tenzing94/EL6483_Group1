@@ -6,7 +6,7 @@ These values can be changed in order to evaluate the functions
 */
 #define CHANNEL A0
 const uint16_t samples = 128; //This value MUST ALWAYS be a power of 2
-const double samplingFrequency = 50000; //Hz, must be less than 10000 due to ADC
+const double samplingFrequency = 32000; //Hz, must be less than 10000 due to ADC
 
 unsigned int sampling_period_us;
 unsigned long microseconds;
@@ -35,14 +35,13 @@ void loop()
       microseconds = micros();    //Overflows after around 70 minutes!
 
       temp = analogRead(CHANNEL);
-      vReal[i] =  ((temp * 3.3) / 1024) - 1.65;
+      vReal[i] =  ((temp * 3.3) / 2048) - 1.65;
       vImag[i] = 0;
       while(micros() < (microseconds + sampling_period_us)){
         //empty loop
       }
   }
   /* Print the results of the sampling according to time */
-  //FFT.Windowing(vReal, samples, FFT_WIN_TYP_HAMMING, FFT_FORWARD);	/* Weigh data */
   FFT.Compute(vReal, vImag, samples, FFT_FORWARD); /* Compute FFT */
   FFT.ComplexToMagnitude(vReal, vImag, samples); /* Compute magnitudes */
   Serial.println("Computed magnitudes:");
