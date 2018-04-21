@@ -6,7 +6,7 @@ arduinoFFT FFT = arduinoFFT();
 #define SAMPLES 64
 #define SAMPLING_FREQUENCY 40000 // The sampling frequency has to be ATLEAST 2x larger than the largest signal.
 #define SAMPLE_PERIOD (float) 11
-#define MARGIN 1
+#define MARGIN 0.4
 
 const uint16_t samples = SAMPLES; // This value MUST ALWAYS be a power of 2
 const double samplingFrequency = SAMPLING_FREQUENCY;
@@ -22,7 +22,7 @@ int chk = 0;
 int found_direction = 0;
 int turn = 0;
 double prevMyReal = 0;
-double max_value = 0;
+double previous_value = 0;
 
 
 double temp;
@@ -60,13 +60,13 @@ void loop() {
   
 
   /*** Compute the FFT *********************************************************************/
-  // FFT.Windowing(vReal, samples, FFT_WIN_TYP_HAMMING, FFT_FORWARD);  /* Weigh data */
+  FFT.Windowing(vReal, samples, FFT_WIN_TYP_HAMMING, FFT_FORWARD);  /* Weigh data */
   FFT.Compute(vReal, vImag, samples, FFT_FORWARD); /* Compute FFT */
   FFT.ComplexToMagnitude(vReal, vImag, samples); /* Compute magnitudes */
 
 
   /*** Print out the values of ALL BINS ************************************************************/
-  /* 
+  /*
   for (uint16_t k = 0; k < (SAMPLES / 2); k++)
   {
     //Serial.println(k); //Bin Index
@@ -78,10 +78,7 @@ void loop() {
   }
   Serial.println("");
   delay(1000);
-  */
-  /**********************************************************************************************/
-
-  
+*/
   myReal = vReal[8]; // Bin corresponding to 5k Hz.
   Serial.println(myReal);
   if (found_maximum == 0)
@@ -99,20 +96,18 @@ void loop() {
 
   if (found_maximum == 0)
   {
-    if (myReal < (max_value - MARGIN))
+    if (myReal < (previous_value - MARGIN))
     {
       found_maximum = 1;
     }
    else
    {
-      max_value = myReal;
+      previous_value = myReal;
    }
   }
   
-  //prevMyReal = myReal;
-  Serial.println(max_value);
+  Serial.println(previous_value);
   Serial.println("//////////////////// THIS IS THE END OF THIS LOOP ////////////////////");
-  delay(100);
+  delay(50); 
   
-
 }

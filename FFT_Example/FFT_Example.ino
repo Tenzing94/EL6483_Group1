@@ -53,7 +53,7 @@ void loop()
 
 void PrintVector(double *vData, uint16_t bufferSize)
 {
-  for (uint16_t i = 0; i < bufferSize; i++)
+  for (uint16_t i = 4; i < 41; i=i+4)
   {
     double abscissa;
         abscissa = ((i * 1.0 * samplingFrequency) / samples);
