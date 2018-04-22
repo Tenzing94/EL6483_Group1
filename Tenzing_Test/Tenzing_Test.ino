@@ -5,7 +5,8 @@ arduinoFFT FFT = arduinoFFT();
 
 #define SAMPLES 64
 #define SAMPLING_FREQUENCY 40000 // The sampling frequency has to be ATLEAST 2x larger than the largest signal.
-#define MARGIN (double) 0.4
+
+#define SIZEOFARRAY 8
 
 const uint16_t samples = SAMPLES; // This value MUST ALWAYS be a power of 2
 const double samplingFrequency = SAMPLING_FREQUENCY;
@@ -19,8 +20,11 @@ double vImag[samples];
 double temp;
 
 
-double firstReal, secondReal, functionReal;
+double functionReal, largestReal;
+double firstReal[8], secondReal[8];
 double Current, Previous;
+
+double maxIndex, maxValue;
 
 void setup() {
 // put your setup code here, to run once
@@ -36,22 +40,22 @@ void setup() {
 }
 
 void loop() {
-firstReal = 0;
-secondReal = 0;
-Previous = 0;
-Current = 1;
 
-int currentTime = 0;
-int foundDirection = 0;
+  largestReal = 0, functionReal = 0;
 
-  /*** Sample the data ****************************************************************/
-  sampleData();
-  /*************************************************************************************************/
+  maxIndex = 0, maxValue = 0;
   
+  firstReal[8] = {0}; 
+  secondReal[8] = {0};
 
+  Previous = 0;
+  Current = 1;
 
+  int currentTime = 0;
+  int foundDirection = 0;
 
-  /*** Print out the values of ALL BINS ************************************************************/
+  sampleData();
+ 
   /*
   for (uint16_t k = 0; k < (SAMPLES / 2); k++)
   {
@@ -65,117 +69,101 @@ int foundDirection = 0;
   Serial.println("");
   delay(500);
   */
-  firstReal = functionReal; // Bin corresponding to 5k Hz
   
-  robotCCW();
-  delay(500);
+  firstReal[0] = functionReal; 
 
-  robotStop();
-  currentTime = micros();
-
-  while(micros() < (currentTime + 1000000))
+  // Spin 360 to read the signals from all the sides
+  for (int i = 1; i < SIZEOFARRAY; i++)
   {
-    sampleData();
-    if (secondReal < functionReal)
-    {
-      secondReal = functionReal;
-    }
-  }
-
-  while(foundDirection == 0)
-  {
-    Serial.println("Stage 2: Entered Second Stage");
-    if (secondReal < firstReal)
-    {
-      robotCW();
-    }
-    else
-    {
-      robotCCW();
-    }
-    delay(500);
-    
+    robotCCW();
+    delay(300);
     robotStop();
-    currentTime = micros();
-
-    while(micros() < (currentTime + 1000000))
-   {
-     sampleData();
-      if (Current < functionReal)
-      {
-        Current = functionReal;
-      }
-    }
-
-    if (Current < Previous)
-    {
-      foundDirection = 1;
-      Serial.println("Stage 3: Found Direction.");
-    }
-
-    Previous = Current; 
-    Serial.println(Previous);
-    Current = 0;
-    
+    read_Signal_One_Sec();
+    firstReal[i] = largestReal;   
   }
 
-  if (secondReal < firstReal)
-   {
-     robotCCW();
-   }
-   else
-   {
-     robotCW();
-   }
-   delay(500);
+  // Figure out which side of the signal gives the largest signal value
+  maxValue = firstReal[0];
+  maxIndex = 0;
+  for (int i = 1; i < SIZEOFARRAY; i++)
+  {
+    if (firstReal[i] > maxValue)
+    {
+      //maxValue = firstReal[i];
+      maxIndex = i;
+    }
+  }
 
-   robotForward();
-   while(1);
-
+  // Go to the direction of the side with largest signal value
+  robotCCW();
+  delay(300*maxIndex);
+  robotForward();
+  delay(100000);  
 }
 
+
+/********************************** LIST OF FUNCTIONS **********************************/
+
+// This function computes the FFT
 void sampleData()
 {
     for (int i = 0; i < SAMPLES; i++)
   {
-    microseconds = micros(); ////////////////////////////////////////////////////////
+    microseconds = micros();
     
     temp = analogRead(CHANNEL); 
     vReal[i] =  ((temp * 3.3) / 1024) - 1.65;
     vImag[i] = 0;
-    while(micros() < (microseconds + sampling_period_us)){
+    while(micros() < (microseconds + sampling_period_us))
+    {
       //empty loop
-      }
+    }
   }
   
-  /*** Compute the FFT *********************************************************************/
   FFT.Compute(vReal, vImag, samples, FFT_FORWARD); /* Compute FFT */
   FFT.ComplexToMagnitude(vReal, vImag, samples); /* Compute magnitudes */
   functionReal = vReal[8];
 }
 
+// This function reads the signal for 1 second and return the largest value read
+void read_Signal_One_Sec()
+{
+  currentTime = micros();
+  while(micros() < (currentTime + 1000000)) // So, this while loop will run for 1 second
+  {
+    sampleData();
+    if (largestReal < functionReal)
+    {
+      largestReal = functionReal;
+    }
+  }
+  
+}
+
+// This function moves the robot in Counter ClockWise Direction
 void robotCCW()
 {
   analogWrite(3,90);
   analogWrite(4,60);
 }
 
+// This function moves the robot in ClockWise Direction
 void robotCW()
 {
   analogWrite(3,60);
   analogWrite(4,90);
 }
 
+// This function moves the robot Forward
 void robotForward()
 {
   analogWrite(3,58);
   analogWrite(4,60);
 }
 
+// This function Stops the robot
 void robotStop()
 {
   analogWrite(3,76);
   analogWrite(4,76);
 }
-
-
