@@ -45,11 +45,37 @@ float frequencyWindow[NEO_PIXEL_COUNT+1];
 float hues[NEO_PIXEL_COUNT];
 
 
+
+
+#define MARGIN 1
+
+int found_maximum = 0;
+int chk = 0;
+int found_direction = 0;
+int turn = 0;
+double prevMyReal = 0;
+double previous_value = 0;
+
+
+double temp;
+
+double myReal;
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // MAIN SKETCH FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
 
 void setup() {
+
+
+  analogWriteFrequency(3,50);      // set the frequency of pin 3 to 50Hz
+  analogWriteFrequency(4,50);      // set the frequency of pin 4 to 50Hz
+
+
+
+  
   // Set up serial port.
   Serial.begin(38400);
   
@@ -193,10 +219,10 @@ void spectrumLoop() {
   // Update each LED based on the intensity of the audio 
   // in the associated frequency window.
   float intensity, otherMean;
-  for (int i = 0; i < NEO_PIXEL_COUNT; ++i) {
+  
     windowMean(magnitudes, 
-               frequencyToBin(frequencyWindow[i]),
-               frequencyToBin(frequencyWindow[i+1]),
+               frequencyToBin(frequencyWindow[1]),
+               frequencyToBin(frequencyWindow[1+1]),
                &intensity,
                &otherMean);
     // Convert intensity to decibels.
@@ -206,13 +232,49 @@ void spectrumLoop() {
     intensity = intensity < 0.0 ? 0.0 : intensity;
     intensity /= (SPECTRUM_MAX_DB-SPECTRUM_MIN_DB);
     intensity = intensity > 1.0 ? 1.0 : intensity;
-    pixels.setPixelColor(i, pixelHSVtoRGBColor(hues[i], 1.0, intensity));
+    pixels.setPixelColor(1, pixelHSVtoRGBColor(hues[1], 1.0, intensity));
 
-    Serial.print(frequencyWindow[i], 6);
+    Serial.print(frequencyWindow[1], 6);
     Serial.print("Hz");
     Serial.print(" ");
-    Serial.println(intensity, 4);
+    Serial.println(intensity*10, 4);
+
+    myReal = intensity*10; // Bin corresponding to 5k Hz.
+  if (found_maximum == 0)
+  {
+    analogWrite(3,76);
+    analogWrite(4,90);
+    delay(250);
+    analogWrite(3,76);
+    analogWrite(4,76);
+    
+    Serial.println("I'm inside the CCW");
   }
+  else if (found_maximum == 1)
+  {
+    analogWrite(3,76);
+    analogWrite(4,76);
+    Serial.println("I'm inside the STOP");
+  }
+
+  if (found_maximum == 0)
+  {
+    if (myReal < (previous_value - MARGIN))
+    {
+      found_maximum = 1;
+    }
+   else
+   {
+      previous_value = myReal;
+   }
+  }
+  
+  Serial.println(myReal);
+  Serial.println(previous_value - MARGIN);
+  Serial.println("//////////////////// THIS IS THE END OF THIS LOOP ////////////////////");
+  delay(100); 
+  
+
   pixels.show();
 }
 

@@ -7,7 +7,7 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  analogWrite(3,61);
-  analogWrite(4,61);
+  analogWrite(3,58);
+  analogWrite(4,60);
   }
 

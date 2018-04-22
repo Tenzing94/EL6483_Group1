@@ -4,7 +4,7 @@ arduinoFFT FFT = arduinoFFT();
 #define CHANNEL A0
 
 #define SAMPLES 64
-#define SAMPLING_FREQUENCY 40000 // The sampling frequency has to be ATLEAST 2x larger than the largest signal.
+#define SAMPLING_FREQUENCY 32000 // The sampling frequency has to be ATLEAST 2x larger than the largest signal.
 #define SAMPLE_PERIOD (float) 11
 #define MARGIN 0.4
 
@@ -39,9 +39,12 @@ void setup() {
   analogWriteFrequency(3,50);      // set the frequency of pin 3 to 50Hz
   analogWriteFrequency(4,50);      // set the frequency of pin 4 to 50Hz
   analogWriteResolution(10);       // set the resolution to 10 bits
+
+  pinMode(13, OUTPUT);
 }
 
 void loop() {
+  
   myReal = 0;
 
   /*** Sample the data ****************************************************************/
@@ -60,7 +63,6 @@ void loop() {
   
 
   /*** Compute the FFT *********************************************************************/
-  FFT.Windowing(vReal, samples, FFT_WIN_TYP_HAMMING, FFT_FORWARD);  /* Weigh data */
   FFT.Compute(vReal, vImag, samples, FFT_FORWARD); /* Compute FFT */
   FFT.ComplexToMagnitude(vReal, vImag, samples); /* Compute magnitudes */
 
@@ -79,12 +81,15 @@ void loop() {
   Serial.println("");
   delay(1000);
 */
-  myReal = vReal[8]; // Bin corresponding to 5k Hz.
-  Serial.println(myReal);
+  myReal = vReal[10]; // Bin corresponding to 5k Hz.
   if (found_maximum == 0)
   {
-    analogWrite(3,90);
+    analogWrite(3,76);
     analogWrite(4,90);
+    delay(250);
+    analogWrite(3,76);
+    analogWrite(4,76);
+    
     Serial.println("I'm inside the CCW");
   }
   else if (found_maximum == 1)
@@ -106,8 +111,9 @@ void loop() {
    }
   }
   
-  Serial.println(previous_value);
+  Serial.println(myReal);
+  Serial.println(previous_value - MARGIN);
   Serial.println("//////////////////// THIS IS THE END OF THIS LOOP ////////////////////");
-  delay(50); 
+  delay(250); 
   
 }
