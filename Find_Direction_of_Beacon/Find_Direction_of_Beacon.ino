@@ -4,8 +4,9 @@ arduinoFFT FFT = arduinoFFT();
 #define CHANNEL A0
 
 #define SAMPLES 64
-#define SAMPLING_FREQUENCY 40000 // The sampling frequency has to be ATLEAST 2x larger than the largest signal.
-#define MARGIN (double) 0.4
+#define SAMPLING_FREQUENCY 32000 // The sampling frequency has to be ATLEAST 2x larger than the largest signal.
+#define MARGIN 3
+#define TINY_MARGIN 0.1
 
 const uint16_t samples = SAMPLES; // This value MUST ALWAYS be a power of 2
 const double samplingFrequency = SAMPLING_FREQUENCY;
@@ -36,20 +37,24 @@ void setup() {
 }
 
 void loop() {
-firstReal = 0;
-secondReal = 0;
-Previous = 0;
-Current = 1;
+  firstReal = 0;
+  secondReal = 0;
+  Previous = 0;
+  Current = 0;
 
-int currentTime = 0;
-int foundDirection = 0;
+  int currentTime = 0;
+  int foundDirection = 0;
 
-  /*** Sample the data ****************************************************************/
-  sampleData();
-  /*************************************************************************************************/
-  
-
-
+  // Taking the largest magnitude found during 1000ms and storing it on firstReal variable
+  currentTime = micros();
+  while(micros() < (currentTime + 1000000))
+  {
+    sampleData();
+    if (firstReal < functionReal)
+    {
+      firstReal = functionReal;
+    }
+  }
 
   /*** Print out the values of ALL BINS ************************************************************/
   /*
@@ -65,27 +70,26 @@ int foundDirection = 0;
   Serial.println("");
   delay(500);
   */
-  firstReal = functionReal; // Bin corresponding to 5k Hz
   
   robotCCW();
-  delay(500);
-
+  delay(310);
   robotStop();
-  currentTime = micros();
 
+  // Taking the largest magnitude found during 1000ms and storing it on secondReal variable
+  currentTime = micros();
   while(micros() < (currentTime + 1000000))
   {
     sampleData();
-    if (secondReal < functionReal)
+    if (secondReal < functionReal) // Position Ref Point 1: Simply finding the largest value within a 1000ms time
     {
       secondReal = functionReal;
     }
   }
-
-  while(foundDirection == 0)
+  
+  while(1)
   {
     Serial.println("Stage 2: Entered Second Stage");
-    if (secondReal < firstReal)
+    if (secondReal < (firstReal - TINY_MARGIN) )
     {
       robotCW();
     }
@@ -93,30 +97,30 @@ int foundDirection = 0;
     {
       robotCCW();
     }
-    delay(500);
+    delay(310);
     
     robotStop();
+    
     currentTime = micros();
 
     while(micros() < (currentTime + 1000000))
-   {
-     sampleData();
+    {
+      sampleData();
       if (Current < functionReal)
       {
         Current = functionReal;
       }
     }
 
-    if (Current < Previous)
+    if (Current < Previous) // This should fail in the first loop because 
     {
-      foundDirection = 1;
       Serial.println("Stage 3: Found Direction.");
+      break;
     }
 
     Previous = Current; 
     Serial.println(Previous);
-    Current = 0;
-    
+    Current = 0;  
   }
 
   if (secondReal < firstReal)
@@ -127,10 +131,10 @@ int foundDirection = 0;
    {
      robotCW();
    }
-   delay(500);
-
+   delay(250);
+   
    robotForward();
-   while(1);
+   delay(100000000);
 
 }
 
@@ -151,7 +155,7 @@ void sampleData()
   /*** Compute the FFT *********************************************************************/
   FFT.Compute(vReal, vImag, samples, FFT_FORWARD); /* Compute FFT */
   FFT.ComplexToMagnitude(vReal, vImag, samples); /* Compute magnitudes */
-  functionReal = vReal[8];
+  functionReal = vReal[10];
 }
 
 void robotCCW()

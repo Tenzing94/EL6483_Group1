@@ -5,7 +5,7 @@ arduinoFFT FFT = arduinoFFT(); /* Create FFT object */
 These values can be changed in order to evaluate the functions
 */
 #define CHANNEL A0
-const uint16_t samples = 128; //This value MUST ALWAYS be a power of 2
+const uint16_t samples = 64; //This value MUST ALWAYS be a power of 2
 const double samplingFrequency = 32000; //Hz, must be less than 10000 due to ADC
 
 unsigned int sampling_period_us;
@@ -25,6 +25,8 @@ void setup()
   sampling_period_us = round(1000000*(1.0/samplingFrequency));
   Serial.begin(115200);
   Serial.println("Ready");
+  analogReadResolution(12);
+  analogReadAveraging(6);
 }
 
 void loop()
