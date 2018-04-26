@@ -8,6 +8,31 @@ arduinoFFT FFT = arduinoFFT();
 #define SIZE_OF_ARRAY 8
 #define CIRCLE_DELAY_IN_MS 330
 
+
+
+/**************************************FREQUENCY BIN INDEX MAPPING**************************************
+ * 
+ * NOTE: This mapping only works when the number of samples = 128, and the number of bins = 64
+ * 
+ * Bin Index --- Frequency
+ *    4      ---  1000Hz
+ *    8      ---  2000Hz
+ *    12     ---  3000Hz
+ *    16     ---  4000Hz
+ *    20     ---  5000Hz
+ *    24     ---  6000Hz
+ *    28     ---  7000Hz
+ *    32     ---  8000Hz
+ *    36     ---  9000Hz
+ *    40     --- 10000Hz
+ *    
+ */
+ 
+#define FREQUENCY_BIN_INDEX 20
+
+ /*******************************************************************************************************/
+
+
 const uint16_t samples = SAMPLES; // This value MUST ALWAYS be a power of 2
 const double samplingFrequency = SAMPLING_FREQUENCY;
 
@@ -24,8 +49,8 @@ void setup() {
   sampling_period_us = round(1000000*(1.0/samplingFrequency));
   Serial.begin(115200);
   
-  analogWriteFrequency(3,50);      // set the frequency of pin 3 to 50Hz
-  analogWriteFrequency(4,50);      // set the frequency of pin 4 to 50Hz
+  analogWriteFrequency(3,50);      // set the frequency of pin 3 to 50Hz // *** Green Wire ***
+  analogWriteFrequency(4,50);      // set the frequency of pin 4 to 50Hz // *** White Wire ***
   analogWriteResolution(10);       // set the resolution to 10 bits
 }
 
@@ -34,27 +59,29 @@ void loop() {
   largestReal = 0, functionReal = 0; 
   realArray[8] = {0}; 
  
-  /*
-  sampleData();
-  for (uint16_t m = 0; m < (SAMPLES / 2); m++)
-  {
-    Serial.println(m); //Bin Index
-    double abscissa;
-    abscissa = ((m * 1.0 * SAMPLING_FREQUENCY) / SAMPLES);
-    Serial.print(abscissa, 2);
-    Serial.print("Hz: ");
-    Serial.println(vReal[m], 4);
-  }
-  Serial.println("");
-  delay(500);
-  
+/*
+  ////////////////////////////////////////////////////////////////////////////////
+  sampleData();                                                    ///////////////
+  for (uint16_t m = 0; m < (SAMPLES / 2); m++)                     ///////////////
+  {                                                                ///////////////
+    Serial.println(m); //Bin Index                                 ///////////////
+    double abscissa;                                               ///////////////
+    abscissa = ((m * 1.0 * SAMPLING_FREQUENCY) / SAMPLES);         ///////////////
+    Serial.print(abscissa, 2);                                     ///////////////
+    Serial.print("Hz: ");                                          ///////////////
+    Serial.println(vReal[m], 4);                                   ///////////////
+  }                                                                ///////////////
+  Serial.println("");                                              ///////////////
+  delay(500);                                                      ///////////////
+  ////////////////////////////////////////////////////////////////////////////////
  */
+ 
   delay(1000); // Solves the problem of the for loop below skipping the first iteration when the microcontroller is reset
  
   // Spin 360 to read the signals from all the sides
   for (int i = 0; i < SIZE_OF_ARRAY; i++)
   { 
-    Serial.println(i);
+    // Serial.println(i);
     robotCCW();
     delay(CIRCLE_DELAY_IN_MS);
     robotStop();  
@@ -90,7 +117,6 @@ void loop() {
   delay(1000);
   robotStop();
   delay(100000000000);
-
 }
 
 
@@ -114,7 +140,7 @@ void sampleData()
   
   FFT.Compute(vReal, vImag, samples, FFT_FORWARD); /* Compute FFT */
   FFT.ComplexToMagnitude(vReal, vImag, samples); /* Compute magnitudes */
-  functionReal = vReal[20]; // Corresponds to a 5K signal
+  functionReal = vReal[FREQUENCY_BIN_INDEX]; 
 }
 
 // This function reads the signal for 1 second and return the largest value read
