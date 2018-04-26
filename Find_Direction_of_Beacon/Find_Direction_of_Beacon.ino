@@ -27,8 +27,8 @@ void setup() {
   sampling_period_us = round(1000000*(1.0/samplingFrequency));
   Serial.begin(115200);
   
-  analogWriteFrequency(3,50);      // set the frequency of pin 3 to 50Hz
-  analogWriteFrequency(4,50);      // set the frequency of pin 4 to 50Hz
+  analogWriteFrequency(3,50);      // set the frequency of pin 3 to 50Hz // *** Green Wire ***
+  analogWriteFrequency(4,50);      // set the frequency of pin 4 to 50Hz // *** White Wire ***
   analogWriteResolution(10);       // set the resolution to 10 bits
 
 }
