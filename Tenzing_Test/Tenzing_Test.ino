@@ -6,7 +6,7 @@ arduinoFFT FFT = arduinoFFT();
 #define SAMPLES 128
 #define SAMPLING_FREQUENCY 32000 // The sampling frequency has to be ATLEAST 2x larger than the largest signal.
 #define SIZE_OF_ARRAY 8
-#define CIRCLE_DELAY_IN_MS 330
+#define CIRCLE_DELAY_IN_MS 315
 
 
 
