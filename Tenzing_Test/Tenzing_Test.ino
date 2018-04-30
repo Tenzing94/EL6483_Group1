@@ -14,17 +14,17 @@ arduinoFFT FFT = arduinoFFT();
  * 
  * NOTE: This mapping only works when the number of samples = 128, and the number of bins = 64
  * 
- * Bin Index --- Frequency
- *    4      ---  1000Hz
- *    8      ---  2000Hz
- *    12     ---  3000Hz
- *    16     ---  4000Hz
- *    20     ---  5000Hz
- *    24     ---  6000Hz
- *    28     ---  7000Hz
- *    32     ---  8000Hz
- *    36     ---  9000Hz
- *    40     --- 10000Hz
+ * Bin Index  ---  Frequency
+ *    4       ---   1000Hz
+ *    8       ---   2000Hz
+ *   12       ---   3000Hz
+ *   16       ---   4000Hz
+ *   20       ---   5000Hz
+ *   24       ---   6000Hz
+ *   28       ---   7000Hz
+ *   32       ---   8000Hz
+ *   36       ---   9000Hz
+ *   40       ---  10000Hz
  *    
  */
  
@@ -35,12 +35,13 @@ arduinoFFT FFT = arduinoFFT();
 
 const uint16_t samples = SAMPLES; // This value MUST ALWAYS be a power of 2
 const double samplingFrequency = SAMPLING_FREQUENCY;
-
 unsigned int sampling_period_us;
 unsigned long microseconds;
 
+/*~~~~~~~~~~We can make these two arrays local variables. Because they are only used in on function~~~~~~~~~~*/
 double vReal[samples];
 double vImag[samples];
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 double functionReal, largestReal;
 double realArray[8]; // This is the array where we will put the magnitude read from each of the 8 sides
@@ -76,7 +77,7 @@ void loop() {
   ////////////////////////////////////////////////////////////////////////////////
  */
  
-  delay(1000); // Solves the problem of the for loop below skipping the first iteration when the microcontroller is reset
+  delay(1000); // Solves the problem of the for loop below skipping the first iteration when the board is reset
  
   // Spin 360 to read the signals from all the sides
   for (int i = 0; i < SIZE_OF_ARRAY; i++)
