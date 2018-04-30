@@ -15,15 +15,26 @@ arduinoFFT FFT = arduinoFFT();
  * NOTE: This mapping only works when the number of samples = 128, and the number of bins = 64
  * 
  * Bin Index  ---  Frequency
+ *    0       ---      0Hz
+ *    1       ---    250Hz
+ *    2       ---    500Hz
+ *    3       ---    750Hz
+ *    
  *    4       ---   1000Hz
  *    8       ---   2000Hz
  *   12       ---   3000Hz
  *   16       ---   4000Hz
+ *   
  *   20       ---   5000Hz
+ *   22       ---   5500Hz
  *   24       ---   6000Hz
+ *   26       ---   6500Hz
  *   28       ---   7000Hz
+ *   30       ---   7500Hz
  *   32       ---   8000Hz
+ *   34       ---   8500Hz
  *   36       ---   9000Hz
+ *   38       ---   9500Hz
  *   40       ---  10000Hz
  *    
  */
@@ -61,20 +72,18 @@ void loop() {
   realArray[8] = {0}; 
  
 /*
-  ////////////////////////////////////////////////////////////////////////////////
-  sampleData();                                                    ///////////////
-  for (uint16_t m = 0; m < (SAMPLES / 2); m++)                     ///////////////
-  {                                                                ///////////////
-    Serial.println(m); //Bin Index                                 ///////////////
-    double abscissa;                                               ///////////////
-    abscissa = ((m * 1.0 * SAMPLING_FREQUENCY) / SAMPLES);         ///////////////
-    Serial.print(abscissa, 2);                                     ///////////////
-    Serial.print("Hz: ");                                          ///////////////
-    Serial.println(vReal[m], 4);                                   ///////////////
-  }                                                                ///////////////
-  Serial.println("");                                              ///////////////
-  delay(500);                                                      ///////////////
-  ////////////////////////////////////////////////////////////////////////////////
+  sampleData();                                                   
+  for (uint16_t m = 0; m < (SAMPLES / 2); m++)               
+  {                                                            
+    Serial.println(m); //Bin Index                               
+    double abscissa;                                            
+    abscissa = ((m * 1.0 * SAMPLING_FREQUENCY) / SAMPLES);       
+    Serial.print(abscissa, 2);                                 
+    Serial.print("Hz: ");                                    
+    Serial.println(vReal[m], 4);                           
+  }                                                  
+  Serial.println("");                                      
+  delay(500);                                                     
  */
  
   delay(1000); // Solves the problem of the for loop below skipping the first iteration when the board is reset

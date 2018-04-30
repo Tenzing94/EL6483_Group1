@@ -6,27 +6,38 @@ arduinoFFT FFT = arduinoFFT();
 #define SAMPLES 128
 #define SAMPLING_FREQUENCY 32000 // The sampling frequency has to be ATLEAST 2x larger than the largest signal.
 #define SIZE_OF_ARRAY 8
-#define CIRCLE_DELAY_IN_MS 315
+#define CIRCLE_DELAY_IN_MS 325
 
 /**************************************FREQUENCY BIN INDEX MAPPING**************************************
  * 
  * NOTE: This mapping only works when the number of samples = 128, and the number of bins = 64
  * 
  * Bin Index  ---  Frequency
+ *    0       ---      0Hz
+ *    1       ---    250Hz
+ *    2       ---    500Hz
+ *    3       ---    750Hz
+ *    
  *    4       ---   1000Hz
  *    8       ---   2000Hz
  *   12       ---   3000Hz
  *   16       ---   4000Hz
+ *   
  *   20       ---   5000Hz
+ *   22       ---   5500Hz
  *   24       ---   6000Hz
+ *   26       ---   6500Hz
  *   28       ---   7000Hz
+ *   30       ---   7500Hz
  *   32       ---   8000Hz
+ *   34       ---   8500Hz
  *   36       ---   9000Hz
+ *   38       ---   9500Hz
  *   40       ---  10000Hz
  *    
  */
  
-#define FREQUENCY_BIN_INDEX 20
+#define FREQUENCY_BIN_INDEX 32
 
  /*******************************************************************************************************/
 
@@ -36,6 +47,12 @@ const double samplingFrequency = SAMPLING_FREQUENCY;
 unsigned int sampling_period_us;
 unsigned long microseconds;
 
+double vReal[samples];
+double vImag[samples];
+
+long duration;
+int distance;
+
 void setup() {
   sampling_period_us = round(1000000*(1.0/samplingFrequency));
   Serial.begin(115200);
@@ -43,9 +60,31 @@ void setup() {
   analogWriteFrequency(3,50);      // set the frequency of pin 3 to 50Hz // *** Green Wire ***
   analogWriteFrequency(4,50);      // set the frequency of pin 4 to 50Hz // *** White Wire ***
   analogWriteResolution(10);       // set the resolution to 10 bits
+
+  analogWriteFrequency(5,50000);    //Set the period of the pwm to 20us
+  analogWrite(5,512);               //trigger set to be on for 10us and off for 10us
+  
 }
 
 void loop() {
+
+/*
+  sampleData();                                                   
+  for (uint16_t m = 0; m < (SAMPLES / 3); m++)  // Changed the 2 to 3             
+  {                                                            
+    Serial.println(m); //Bin Index                               
+    double abscissa;                                            
+    abscissa = ((m * 1.0 * SAMPLING_FREQUENCY) / SAMPLES);       
+    Serial.print(abscissa, 2);                                 
+    Serial.print("Hz: ");                                    
+    Serial.println(vReal[m], 4);                           
+  }                                                  
+  Serial.println("");                                      
+  delay(500);  
+*/
+
+
+
 
   double realArray[8] = {0}; // This is the array where we will put the magnitude read from each of the 8 sides
  
@@ -90,6 +129,7 @@ void loop() {
   delay(1000);
   robotStop();
   delay(100000000000);
+  
 }
 
 
@@ -99,8 +139,6 @@ void loop() {
 double sampleData()
 {
   double myReal = 0;
-  double vReal[samples];
-  double vImag[samples];
   for (int l = 0; l < SAMPLES; l++)
   {
     microseconds = micros();
@@ -140,15 +178,15 @@ double read_Signal_One_Sec()
   return largestReal;
 }
 
-// This function moves the robot in Counter ClockWise Direction
-void robotCCW()
+// This function moves the robot in ClockWise Direction
+void robotCW()
 {
   analogWrite(3,90);
   analogWrite(4,60);
 }
 
-// This function moves the robot in ClockWise Direction
-void robotCW()
+// This function moves the robot in Counter ClockWise Direction
+void robotCCW()
 {
   analogWrite(3,60);
   analogWrite(4,90);
@@ -157,7 +195,7 @@ void robotCW()
 // This function moves the robot Forward
 void robotForward()
 {
-  analogWrite(3,58);
+  analogWrite(3,60);
   analogWrite(4,60);
 }
 
@@ -167,3 +205,11 @@ void robotStop()
   analogWrite(3,76);
   analogWrite(4,76);
 }
+
+// This functin is to read from the ultrasonic
+void ultrasonic()
+{
+  duration = pulseIn(6, HIGH);    //measure time that is high
+  distance = duration*0.034/2;    //convert to centimeters
+}
+

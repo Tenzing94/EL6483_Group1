@@ -10,18 +10,11 @@ void setup() {
   analogWriteResolution(10);       // set the resolution to 10 bits
 }
 
-/*
-void loop() {
-  // put your main code here, to run repeatedly:
-  analogWrite(3,60);
-  analogWrite(4,60);
-  }
-*/
 
 void loop(){
 
-  robotCW();
-  delay(300);
+  robotForward();
+  delay(1000);
   robotStop();
   delay(500);
 }
@@ -43,7 +36,7 @@ void robotCCW()
 // This function moves the robot Forward
 void robotForward()
 {
-  analogWrite(3,58);
+  analogWrite(3,60);
   analogWrite(4,60);
 }
 
