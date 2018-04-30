@@ -38,11 +38,6 @@ const double samplingFrequency = SAMPLING_FREQUENCY;
 unsigned int sampling_period_us;
 unsigned long microseconds;
 
-/*~~~~~~~~~~We can make these two arrays local variables. Because they are only used in on function~~~~~~~~~~*/
-double vReal[samples];
-double vImag[samples];
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-
 double functionReal, largestReal;
 double realArray[8]; // This is the array where we will put the magnitude read from each of the 8 sides
 
@@ -126,6 +121,8 @@ void loop() {
 // This function computes the FFT
 void sampleData()
 {
+  double vReal[samples];
+  double vImag[samples];
   for (int l = 0; l < SAMPLES; l++)
   {
     microseconds = micros();
