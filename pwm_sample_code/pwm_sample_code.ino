@@ -20,31 +20,21 @@ void loop() {
 
 void loop(){
 
-  for(int i = 0; i < SIZE_OF_ARRAY; i++)
-  {
-    robotCCW();
-    delay(CIRCLE_DELAY);
-    robotStop();
-    delay(1000);
-  }
-  
-  for(int i = 0; i < SIZE_OF_ARRAY; i++)
-  {
-    robotCCW();
-    delay(CIRCLE_DELAY);
-    robotStop();
-    delay(250);
-  }
+  robotCW();
+  delay(300);
+  robotStop();
+  delay(500);
 }
 
-void robotCCW()
+// This function moves the robot in ClockWise Direction
+void robotCW()
 {
   analogWrite(3,90);
   analogWrite(4,60);
 }
 
-// This function moves the robot in ClockWise Direction
-void robotCW()
+// This function moves the robot in Counter ClockWise Direction
+void robotCCW()
 {
   analogWrite(3,60);
   analogWrite(4,90);
