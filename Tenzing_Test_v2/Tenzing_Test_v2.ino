@@ -8,8 +8,6 @@ arduinoFFT FFT = arduinoFFT();
 #define SIZE_OF_ARRAY 8
 #define CIRCLE_DELAY_IN_MS 315
 
-
-
 /**************************************FREQUENCY BIN INDEX MAPPING**************************************
  * 
  * NOTE: This mapping only works when the number of samples = 128, and the number of bins = 64
@@ -38,9 +36,6 @@ const double samplingFrequency = SAMPLING_FREQUENCY;
 unsigned int sampling_period_us;
 unsigned long microseconds;
 
-double functionReal, largestReal;
-double realArray[8]; // This is the array where we will put the magnitude read from each of the 8 sides
-
 void setup() {
   sampling_period_us = round(1000000*(1.0/samplingFrequency));
   Serial.begin(115200);
@@ -52,25 +47,7 @@ void setup() {
 
 void loop() {
 
-  largestReal = 0, functionReal = 0; 
-  realArray[8] = {0}; 
- 
-/*
-  ////////////////////////////////////////////////////////////////////////////////
-  sampleData();                                                    ///////////////
-  for (uint16_t m = 0; m < (SAMPLES / 2); m++)                     ///////////////
-  {                                                                ///////////////
-    Serial.println(m); //Bin Index                                 ///////////////
-    double abscissa;                                               ///////////////
-    abscissa = ((m * 1.0 * SAMPLING_FREQUENCY) / SAMPLES);         ///////////////
-    Serial.print(abscissa, 2);                                     ///////////////
-    Serial.print("Hz: ");                                          ///////////////
-    Serial.println(vReal[m], 4);                                   ///////////////
-  }                                                                ///////////////
-  Serial.println("");                                              ///////////////
-  delay(500);                                                      ///////////////
-  ////////////////////////////////////////////////////////////////////////////////
- */
+  double realArray[8] = {0}; // This is the array where we will put the magnitude read from each of the 8 sides
  
   delay(1000); // Solves the problem of the for loop below skipping the first iteration when the board is reset
  
@@ -81,8 +58,7 @@ void loop() {
     robotCCW();
     delay(CIRCLE_DELAY_IN_MS);
     robotStop();  
-    read_Signal_One_Sec();
-    realArray[i] = largestReal;
+    realArray[i] = read_Signal_One_Sec(); //Array index i will hold the largest value read during a period of 1s
   }
   delay(500);
 
@@ -99,6 +75,7 @@ void loop() {
   }
   Serial.println(maxIndex);
 
+  // Once we have found the direction of the signal, we move towards it.
   for(int k = 0; k <= maxIndex; k++)
   {
     robotCCW();
@@ -119,8 +96,9 @@ void loop() {
 /********************************** FUNCTIONS **********************************/
 
 // This function computes the FFT
-void sampleData()
+double sampleData()
 {
+  double myReal = 0;
   double vReal[samples];
   double vImag[samples];
   for (int l = 0; l < SAMPLES; l++)
@@ -138,24 +116,28 @@ void sampleData()
   
   FFT.Compute(vReal, vImag, samples, FFT_FORWARD); /* Compute FFT */
   FFT.ComplexToMagnitude(vReal, vImag, samples); /* Compute magnitudes */
-  functionReal = vReal[FREQUENCY_BIN_INDEX]; 
+  myReal = vReal[FREQUENCY_BIN_INDEX]; 
+  
+  return myReal;
 }
 
+
 // This function reads the signal for 1 second and return the largest value read
-void read_Signal_One_Sec()
+double read_Signal_One_Sec()
 {
-  largestReal = 0;
+  double currentReal = 0, largestReal = 0;
   int currentTime = 0;
   currentTime = micros();
   while(micros() < (currentTime + 1000000)) // So, this while loop will run for 1 second
   {
-    sampleData();
-    if (largestReal < functionReal)
+    currentReal = sampleData();
+    if (largestReal < currentReal)
     {
-      largestReal = functionReal;
+      largestReal = currentReal;
     }
   }
   
+  return largestReal;
 }
 
 // This function moves the robot in Counter ClockWise Direction
