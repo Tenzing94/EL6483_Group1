@@ -6,9 +6,7 @@ arduinoFFT FFT = arduinoFFT();
 #define SAMPLES 128
 #define SAMPLING_FREQUENCY 32000 // The sampling frequency has to be ATLEAST 2x larger than the largest signal.
 #define SIZE_OF_ARRAY 8
-#define CIRCLE_DELAY_IN_MS 315
-
-
+#define CIRCLE_DELAY_IN_MS 325
 
 /**************************************FREQUENCY BIN INDEX MAPPING**************************************
  * 
@@ -39,7 +37,7 @@ arduinoFFT FFT = arduinoFFT();
  *    
  */
  
-#define FREQUENCY_BIN_INDEX 20
+#define FREQUENCY_BIN_INDEX 32
 
  /*******************************************************************************************************/
 
@@ -49,13 +47,11 @@ const double samplingFrequency = SAMPLING_FREQUENCY;
 unsigned int sampling_period_us;
 unsigned long microseconds;
 
-/*~~~~~~~~~~We can make these two arrays local variables. Because they are only used in on function~~~~~~~~~~*/
 double vReal[samples];
 double vImag[samples];
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-double functionReal, largestReal;
-double realArray[8]; // This is the array where we will put the magnitude read from each of the 8 sides
+long duration;
+int distance;
 
 void setup() {
   sampling_period_us = round(1000000*(1.0/samplingFrequency));
@@ -64,16 +60,17 @@ void setup() {
   analogWriteFrequency(3,50);      // set the frequency of pin 3 to 50Hz // *** Green Wire ***
   analogWriteFrequency(4,50);      // set the frequency of pin 4 to 50Hz // *** White Wire ***
   analogWriteResolution(10);       // set the resolution to 10 bits
+
+  analogWriteFrequency(5,50000);    //Set the period of the pwm to 20us
+  analogWrite(5,512);               //trigger set to be on for 10us and off for 10us
+  
 }
 
 void loop() {
 
-  largestReal = 0, functionReal = 0; 
-  realArray[8] = {0}; 
- 
 /*
   sampleData();                                                   
-  for (uint16_t m = 0; m < (SAMPLES / 2); m++)               
+  for (uint16_t m = 0; m < (SAMPLES / 3); m++)  // Changed the 2 to 3             
   {                                                            
     Serial.println(m); //Bin Index                               
     double abscissa;                                            
@@ -83,8 +80,13 @@ void loop() {
     Serial.println(vReal[m], 4);                           
   }                                                  
   Serial.println("");                                      
-  delay(500);                                                     
- */
+  delay(500);  
+*/
+
+
+
+
+  double realArray[8] = {0}; // This is the array where we will put the magnitude read from each of the 8 sides
  
   delay(1000); // Solves the problem of the for loop below skipping the first iteration when the board is reset
  
@@ -95,8 +97,7 @@ void loop() {
     robotCCW();
     delay(CIRCLE_DELAY_IN_MS);
     robotStop();  
-    read_Signal_One_Sec();
-    realArray[i] = largestReal;
+    realArray[i] = read_Signal_One_Sec(); //Array index i will hold the largest value read during a period of 1s
   }
   delay(500);
 
@@ -113,6 +114,7 @@ void loop() {
   }
   Serial.println(maxIndex);
 
+  // Once we have found the direction of the signal, we move towards it.
   for(int k = 0; k <= maxIndex; k++)
   {
     robotCCW();
@@ -127,14 +129,16 @@ void loop() {
   delay(1000);
   robotStop();
   delay(100000000000);
+  
 }
 
 
 /********************************** FUNCTIONS **********************************/
 
 // This function computes the FFT
-void sampleData()
+double sampleData()
 {
+  double myReal = 0;
   for (int l = 0; l < SAMPLES; l++)
   {
     microseconds = micros();
@@ -150,35 +154,39 @@ void sampleData()
   
   FFT.Compute(vReal, vImag, samples, FFT_FORWARD); /* Compute FFT */
   FFT.ComplexToMagnitude(vReal, vImag, samples); /* Compute magnitudes */
-  functionReal = vReal[FREQUENCY_BIN_INDEX]; 
+  myReal = vReal[FREQUENCY_BIN_INDEX]; 
+  
+  return myReal;
 }
 
+
 // This function reads the signal for 1 second and return the largest value read
-void read_Signal_One_Sec()
+double read_Signal_One_Sec()
 {
-  largestReal = 0;
+  double currentReal = 0, largestReal = 0;
   int currentTime = 0;
   currentTime = micros();
   while(micros() < (currentTime + 1000000)) // So, this while loop will run for 1 second
   {
-    sampleData();
-    if (largestReal < functionReal)
+    currentReal = sampleData();
+    if (largestReal < currentReal)
     {
-      largestReal = functionReal;
+      largestReal = currentReal;
     }
   }
   
+  return largestReal;
 }
 
-// This function moves the robot in Counter ClockWise Direction
-void robotCCW()
+// This function moves the robot in ClockWise Direction
+void robotCW()
 {
   analogWrite(3,90);
   analogWrite(4,60);
 }
 
-// This function moves the robot in ClockWise Direction
-void robotCW()
+// This function moves the robot in Counter ClockWise Direction
+void robotCCW()
 {
   analogWrite(3,60);
   analogWrite(4,90);
@@ -187,7 +195,7 @@ void robotCW()
 // This function moves the robot Forward
 void robotForward()
 {
-  analogWrite(3,58);
+  analogWrite(3,60);
   analogWrite(4,60);
 }
 
@@ -197,3 +205,11 @@ void robotStop()
   analogWrite(3,76);
   analogWrite(4,76);
 }
+
+// This functin is to read from the ultrasonic
+void ultrasonic()
+{
+  duration = pulseIn(6, HIGH);    //measure time that is high
+  distance = duration*0.034/2;    //convert to centimeters
+}
+

@@ -3,9 +3,9 @@
 arduinoFFT FFT = arduinoFFT();
 #define CHANNEL A0
 
-#define SAMPLES 64
-#define SAMPLING_FREQUENCY 40000 // The sampling frequency has to be ATLEAST 2x larger than the largest signal.
-#define MARGIN (double) 0.4
+#define SAMPLES 128
+#define SAMPLING_FREQUENCY 32000 // The sampling frequency has to be ATLEAST 2x larger than the largest signal.
+#define MARGIN 3
 
 const uint16_t samples = SAMPLES; // This value MUST ALWAYS be a power of 2
 const double samplingFrequency = SAMPLING_FREQUENCY;
@@ -18,38 +18,41 @@ double vImag[samples];
 
 double temp;
 
-
 double firstReal, secondReal, functionReal;
 double Current, Previous;
 
-void setup() {
-// put your setup code here, to run once
-  //sampling_period_us = round(1000000*(1.0/samplingFrequency));
-  Serial.begin(115200);
+int state;
 
-  sampling_period_us = round(1000000*(1.0/samplingFrequency)); ///////////////////////////////////////////
+void setup() {
+  sampling_period_us = round(1000000*(1.0/samplingFrequency));
+  Serial.begin(115200);
   
-  analogWriteFrequency(3,50);      // set the frequency of pin 3 to 50Hz
-  analogWriteFrequency(4,50);      // set the frequency of pin 4 to 50Hz
+  analogWriteFrequency(3,50);      // set the frequency of pin 3 to 50Hz // *** Green Wire ***
+  analogWriteFrequency(4,50);      // set the frequency of pin 4 to 50Hz // *** White Wire ***
   analogWriteResolution(10);       // set the resolution to 10 bits
 
 }
 
 void loop() {
-firstReal = 0;
-secondReal = 0;
-Previous = 0;
-Current = 1;
+  firstReal = 0;
+  secondReal = 0;
+  Previous = 0;
+  Current = 0;
+  state = 0;
 
-int currentTime = 0;
-int foundDirection = 0;
+  int currentTime = 0;
+  int foundDirection = 0;
 
-  /*** Sample the data ****************************************************************/
-  sampleData();
-  /*************************************************************************************************/
-  
-
-
+  // Taking the largest magnitude found during 1000ms and storing it on firstReal variable
+  currentTime = micros();
+  while(micros() < (currentTime + 1000000))
+  {
+    sampleData();
+    if (firstReal < functionReal)
+    {
+      firstReal = functionReal;
+    }
+  }
 
   /*** Print out the values of ALL BINS ************************************************************/
   /*
@@ -65,72 +68,107 @@ int foundDirection = 0;
   Serial.println("");
   delay(500);
   */
-  firstReal = functionReal; // Bin corresponding to 5k Hz
   
   robotCCW();
-  delay(500);
-
+  delay(310);
   robotStop();
-  currentTime = micros();
 
+  // Taking the largest magnitude found during 1000ms and storing it on secondReal variable
+  currentTime = micros();
   while(micros() < (currentTime + 1000000))
   {
     sampleData();
-    if (secondReal < functionReal)
+    if (secondReal < functionReal) // Position Ref Point 1: Simply finding the largest value within a 1000ms time
     {
       secondReal = functionReal;
     }
   }
 
-  while(foundDirection == 0)
+  if (secondReal > firstReal) // Meaning we are going in the right direction
   {
-    Serial.println("Stage 2: Entered Second Stage");
-    if (secondReal < firstReal)
-    {
-      robotCW();
-    }
-    else
-    {
-      robotCCW();
-    }
-    delay(500);
-    
-    robotStop();
-    currentTime = micros();
-
-    while(micros() < (currentTime + 1000000))
-   {
-     sampleData();
-      if (Current < functionReal)
-      {
-        Current = functionReal;
-      }
-    }
-
-    if (Current < Previous)
-    {
-      foundDirection = 1;
-      Serial.println("Stage 3: Found Direction.");
-    }
-
-    Previous = Current; 
-    Serial.println(Previous);
-    Current = 0;
-    
+    state = 1;
+  }
+  else if (secondReal <= firstReal) // Meaning we are going in the wrong direction
+  {
+    state = 2;
   }
 
-  if (secondReal < firstReal)
-   {
-     robotCCW();
-   }
-   else
-   {
-     robotCW();
-   }
-   delay(500);
+  if (state == 1) // Keep going in the same direction
+  {
+    Previous = secondReal; // Because the secondReal
+    while(1)
+    {
+      robotCCW();
+      delay(310);
+      robotStop();
+      
+      currentTime = micros();
+      while(micros() < (currentTime + 1000000))
+      {
+        sampleData();
+        if (Current < functionReal) 
+        {
+          Current = functionReal;
+        }
+      }
 
-   robotForward();
-   while(1);
+      if (Current < Previous) // Meaning we have gone past the largest value
+      {
+        break; 
+      }
+      Previous = Current;
+      Current = 0;             
+    }    
+  }
+  
+  else if (state == 2)
+  {
+    Previous = secondReal; // Because the secondReal
+    while(1)
+    {
+      robotCW();
+      delay(310);
+      robotStop();
+      
+      currentTime = micros();
+      while(micros() < (currentTime + 1000000))
+      {
+        sampleData();
+        if (Current < functionReal) 
+        {
+          Current = functionReal;
+        }
+      }
+
+      if (Current < Previous) // Meaning we have gone past the largest value
+      {
+        break; 
+      }
+      Previous = Current;
+      Current = 0;             
+    }       
+  }
+
+  // Now we need to correct the robot by going back by 1
+  if (state == 1)
+  {
+    robotCW();
+    delay(310);
+    robotStop();
+  }
+  
+  else if (state == 2)
+  {
+    robotCCW();
+    delay(310);
+    robotStop();  
+  }
+ 
+  delay(1000);  
+  robotForward();
+  delay(1000);
+  robotStop();
+  delay(100000000000); 
 
 }
 
@@ -151,7 +189,7 @@ void sampleData()
   /*** Compute the FFT *********************************************************************/
   FFT.Compute(vReal, vImag, samples, FFT_FORWARD); /* Compute FFT */
   FFT.ComplexToMagnitude(vReal, vImag, samples); /* Compute magnitudes */
-  functionReal = vReal[8];
+  functionReal = vReal[20];
 }
 
 void robotCCW()
