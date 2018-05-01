@@ -5,8 +5,20 @@ arduinoFFT FFT = arduinoFFT();
 
 #define SAMPLES 128
 #define SAMPLING_FREQUENCY 32000 // The sampling frequency has to be ATLEAST 2x larger than the largest signal.
-#define SIZE_OF_ARRAY 8 //16
-#define CIRCLE_DELAY_IN_MS 313 //225
+#define SIZE_OF_ARRAY 12 
+
+
+
+/**************************************CIRCLE SPEED**************************************
+ * Size of Array  ---  Tested Speed
+ *    8           ---    320
+ *   12           ---    255
+ *   16           ---    225
+ */
+#define SIZE_OF_ARRAY 12
+#define CIRCLE_DELAY_IN_MS 255  
+
+
 
 /**************************************FREQUENCY BIN INDEX MAPPING**************************************
  * 
@@ -36,8 +48,8 @@ arduinoFFT FFT = arduinoFFT();
  *   40       ---  10000Hz
  *    
  */
- 
-#define FREQUENCY_BIN_INDEX 40
+#define FREQUENCY_BIN_INDEX 30
+
 
  /*******************************************************************************************************/
 
@@ -124,7 +136,7 @@ void loop() {
   }
 
   robotStop();
-  delay(1000);  
+  delay(250);  
   robotForward();
   delay(1000);
   robotStop();
@@ -166,7 +178,7 @@ double read_Signal_One_Sec()
   double currentReal = 0, largestReal = 0;
   int currentTime = 0;
   currentTime = micros();
-  while(micros() < (currentTime + 1000000)) // So, this while loop will run for 1 second
+  while(micros() < (currentTime + 1250000)) // So, this while loop will run for 1 second
   {
     currentReal = sampleData();
     if (largestReal < currentReal)
