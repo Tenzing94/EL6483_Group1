@@ -73,7 +73,7 @@ void loop() {
  
 /*
   sampleData();                                                   
-  for (uint16_t m = 0; m < (SAMPLES / 2); m++)               
+  for (uint16_t m = 0; m < (SAMPLES / 3); m++)               
   {                                                            
     Serial.println(m); //Bin Index                               
     double abscissa;                                            
@@ -83,7 +83,7 @@ void loop() {
     Serial.println(vReal[m], 4);                           
   }                                                  
   Serial.println("");                                      
-  delay(500);                                                     
+  delay(100);                                                     
  */
  
   delay(1000); // Solves the problem of the for loop below skipping the first iteration when the board is reset
@@ -127,8 +127,9 @@ void loop() {
   delay(1000);
   robotStop();
   delay(100000000000);
-}
 
+
+}
 
 /********************************** FUNCTIONS **********************************/
 

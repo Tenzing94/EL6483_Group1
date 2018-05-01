@@ -13,10 +13,13 @@ void setup() {
 
 void loop(){
 
-  robotForward();
-  delay(1000);
+  robotCCW();
+  delay(3000);
   robotStop();
-  delay(500);
+  delay(1000);
+  robotForward();
+  delay(10000000000000000);
+
 }
 
 // This function moves the robot in ClockWise Direction

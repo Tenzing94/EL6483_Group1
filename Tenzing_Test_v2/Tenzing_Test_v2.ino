@@ -5,8 +5,8 @@ arduinoFFT FFT = arduinoFFT();
 
 #define SAMPLES 128
 #define SAMPLING_FREQUENCY 32000 // The sampling frequency has to be ATLEAST 2x larger than the largest signal.
-#define SIZE_OF_ARRAY 8
-#define CIRCLE_DELAY_IN_MS 325
+#define SIZE_OF_ARRAY 8 //16
+#define CIRCLE_DELAY_IN_MS 313 //225
 
 /**************************************FREQUENCY BIN INDEX MAPPING**************************************
  * 
@@ -37,7 +37,7 @@ arduinoFFT FFT = arduinoFFT();
  *    
  */
  
-#define FREQUENCY_BIN_INDEX 32
+#define FREQUENCY_BIN_INDEX 40
 
  /*******************************************************************************************************/
 
@@ -86,7 +86,7 @@ void loop() {
 
 
 
-  double realArray[8] = {0}; // This is the array where we will put the magnitude read from each of the 8 sides
+  double realArray[SIZE_OF_ARRAY] = {0}; // This is the array where we will put the magnitude read from each of the 8 sides
  
   delay(1000); // Solves the problem of the for loop below skipping the first iteration when the board is reset
  
