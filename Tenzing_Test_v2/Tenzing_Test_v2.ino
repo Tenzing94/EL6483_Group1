@@ -10,7 +10,7 @@ arduinoFFT FFT = arduinoFFT();
 
 
 /**************************************CIRCLE SPEED**************************************
- * Size of Array  ---  Tested Speed
+ * Size of Array  ---  Tested Speed (NOTE: You may need to play around with this number and tune it)
  *    8           ---    320
  *   12           ---    255
  *   16           ---    225
