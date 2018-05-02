@@ -45,10 +45,7 @@ arduinoFFT FFT = arduinoFFT();
  *   40       ---  10000Hz
  *    
  */
-#define FREQUENCY_BIN_INDEX 30
 
-
- /*******************************************************************************************************/
 
 
 const uint16_t samples = SAMPLES; // This value MUST ALWAYS be a power of 2
@@ -58,6 +55,8 @@ unsigned long microseconds;
 
 double vReal[samples];
 double vImag[samples];
+
+int frequency_bin_index = 20; // Initialized to 5KHz
 
 long duration;
 int distance;
@@ -132,12 +131,14 @@ void loop() {
     delay(250);
   }
 
-  robotStop();
-  delay(250);  
-  robotForward();
-  delay(1000);
-  robotStop();
-  delay(100000000000);
+  if (frequency_bin_index == 40) // We are going towards the last beacon
+  {
+    
+  }
+  else
+  {
+    
+  }
   
 }
 
@@ -145,7 +146,7 @@ void loop() {
 /********************************** FUNCTIONS **********************************/
 
 // This function computes the FFT
-double sampleData()
+double sampleData(int input_index)
 {
   double myReal = 0;
   for (int l = 0; l < SAMPLES; l++)
@@ -163,7 +164,7 @@ double sampleData()
   
   FFT.Compute(vReal, vImag, samples, FFT_FORWARD); /* Compute FFT */
   FFT.ComplexToMagnitude(vReal, vImag, samples); /* Compute magnitudes */
-  myReal = vReal[FREQUENCY_BIN_INDEX]; 
+  myReal = vReal[input_index]; 
   
   return myReal;
 }
@@ -177,7 +178,7 @@ double read_Signal_One_Sec()
   currentTime = micros();
   while(micros() < (currentTime + 1250000)) // So, this while loop will run for 1 second
   {
-    currentReal = sampleData();
+    currentReal = sampleData(frequency_bin_index);
     if (largestReal < currentReal)
     {
       largestReal = currentReal;

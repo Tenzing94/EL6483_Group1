@@ -77,7 +77,7 @@ void setup() {
 
 void loop() {
 
-/*
+
   sampleData();                                                   
   for (uint16_t m = 0; m < (SAMPLES / 3); m++)  // Changed the 2 to 3             
   {                                                            
@@ -90,7 +90,7 @@ void loop() {
   }                                                  
   Serial.println("");                                      
   delay(500);  
-*/
+/*
 
 
 
@@ -138,7 +138,7 @@ void loop() {
   delay(1000);
   robotStop();
   delay(100000000000);
-  
+ */ 
 }
 
 

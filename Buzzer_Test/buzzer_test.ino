@@ -9,7 +9,7 @@ void setup() {
 
 void loop() {
   
-  tone(piezoPin, 5000, 250);
-  delay(750);
+  tone(piezoPin, 7000, 250);
+  //delay(750);
   
 }

@@ -71,20 +71,21 @@ void loop() {
   largestReal = 0, functionReal = 0; 
   realArray[8] = {0}; 
  
-/*
+
   sampleData();                                                   
-  for (uint16_t m = 0; m < (SAMPLES / 3); m++)               
+  for (uint16_t m = 20; m < 41; m++)               
   {                                                            
     Serial.println(m); //Bin Index                               
     double abscissa;                                            
     abscissa = ((m * 1.0 * SAMPLING_FREQUENCY) / SAMPLES);       
     Serial.print(abscissa, 2);                                 
     Serial.print("Hz: ");                                    
-    Serial.println(vReal[m], 4);                           
+    Serial.println(vReal[m], 4); 
+    m++;                          
   }                                                  
   Serial.println("");                                      
-  delay(100);                                                     
- */
+  delay(500);                                                     
+/*
  
   delay(1000); // Solves the problem of the for loop below skipping the first iteration when the board is reset
  
@@ -128,7 +129,7 @@ void loop() {
   robotStop();
   delay(100000000000);
 
-
+*/
 }
 
 /********************************** FUNCTIONS **********************************/
@@ -139,10 +140,12 @@ void sampleData()
   for (int l = 0; l < SAMPLES; l++)
   {
     microseconds = micros();
-    
+    analogReadRes(12);       // set the resolution to 10 bits
+    analogReadAveraging(2);       // set the resolution to 10 bits
     double temp = analogRead(CHANNEL); 
     vReal[l] =  ((temp * 3.3) / 1024) - 1.65;
     vImag[l] = 0;
+    vReal[l] *= 100;
     while(micros() < (microseconds + sampling_period_us))
     {
       //empty loop
