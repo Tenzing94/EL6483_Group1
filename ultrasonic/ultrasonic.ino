@@ -26,3 +26,4 @@ void ultrasonic()
   duration = pulseIn(echo,HIGH);
   //convert to cm
   distance = duration * 0.034/2;
+}
