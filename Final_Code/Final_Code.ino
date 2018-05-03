@@ -6,6 +6,7 @@ arduinoFFT FFT = arduinoFFT();
 #define SAMPLES 128
 #define SAMPLING_FREQUENCY 32000 // The sampling frequency has to be ATLEAST 2x larger than the largest signal.
 #define SIZE_OF_ARRAY 12 
+#define MAXXX 10
 
 
 /**************************************CIRCLE SPEED**************************************
@@ -15,7 +16,7 @@ arduinoFFT FFT = arduinoFFT();
  *   16           ---    225
  */
 #define SIZE_OF_ARRAY 12
-#define CIRCLE_DELAY_IN_MS 255  
+#define CIRCLE_DELAY_IN_MS 260  
 
 /**************************************FREQUENCY BIN INDEX MAPPING**************************************
  * 
@@ -58,6 +59,8 @@ double vImag[samples];
 
 int frequency_bin_index = 20; // Initialized to 5KHz
 
+const int trig = 5;
+const int echo = 6;
 long duration;
 int distance;
 
@@ -69,43 +72,184 @@ void setup() {
   analogWriteFrequency(4,50);      // set the frequency of pin 4 to 50Hz // *** White Wire ***
   analogWriteResolution(10);       // set the resolution to 10 bits
 
-  analogWriteFrequency(5,50000);    //Set the period of the pwm to 20us
-  analogWrite(5,512);               //trigger set to be on for 10us and off for 10us
+  //analogWriteFrequency(5,50000);    //Set the period of the pwm to 20us
+  //analogWrite(5,512);               //trigger set to be on for 10us and off for 10us
   
 }
 
 void loop() {
 
-/*
-  sampleData();                                                   
-  for (uint16_t m = 0; m < (SAMPLES / 3); m++)  // Changed the 2 to 3             
-  {                                                            
-    Serial.println(m); //Bin Index                               
-    double abscissa;                                            
-    abscissa = ((m * 1.0 * SAMPLING_FREQUENCY) / SAMPLES);       
-    Serial.print(abscissa, 2);                                 
-    Serial.print("Hz: ");                                    
-    Serial.println(vReal[m], 4);                           
-  }                                                  
-  Serial.println("");                                      
-  delay(500);  
-*/
-
-
-
 
   delay(1000); // Solves the problem of the for loop below skipping the first iteration when the board is reset
- 
+
+  scan_full_circle();
+
+  delay(500);
+  robotForward();
+  delay(1000);
+  robotStop();
+
+  scan_five_points();
+
+  robotStop();
+  delay(500);
+  robotForward();
+  delay(500);
+  robotStop();
+
+  scan_three_points();
+
+  robotStop();
+  delay(500);
+  robotForward();
+  delay(500);
+  robotStop();
+
+  scan_three_points();
+  
+  robotStop();
+  delay(500);
+  robotForward();
+  delay(500);
+  robotStop();
+
+  scan_three_points();
+
+  robotStop();
+  delay(500);
+  robotForward();
+  delay(500);
+  robotStop();
+
+  scan_three_points();
+  
+  robotStop();
+  delay(500);
+  robotForward();
+  delay(500);
+  robotStop();
+  delay(10000000000000);
+  
+  if (frequency_bin_index == 40) // We are going towards the last beacon
+  {
+    
+  }
+  else
+  {
+    
+  }
+  
+}
+
+
+/********************************** FUNCTIONS **********************************/
+
+// This functin is to read from the ultrasonic
+void ultrasonic()
+{
+  digitalWrite(trig,LOW);
+  delayMicroseconds(2);
+  // Sets the trigPin on HIGH state for 10 micro seconds
+  digitalWrite(trig, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trig,LOW);
+  
+  duration = pulseIn(echo,HIGH);
+  //convert to cm
+  distance = duration * 0.034/2;
+}
+
+// This function computes the FFT
+double sampleData(int input_index)
+{
+  double temp = 0, myReal = 0;
+  
+  for(int i=0; i<samples; i++)
+  {
+      microseconds = micros();   
+
+      temp = analogRead(CHANNEL);
+      vReal[i] =  ((temp * 3.3) / 2048) - 1.65;
+      vImag[i] = 0;
+      while(micros() < (microseconds + sampling_period_us)){
+        //empty loop
+      }
+  }
+
+  FFT.Compute(vReal, vImag, samples, FFT_FORWARD); 
+  FFT.ComplexToMagnitude(vReal, vImag, samples); 
+
+  myReal = vReal[input_index];
+  //myReal = (vReal[input_index] + vReal[input_index + 1] + vReal[input_index - 1]) / 3; averages the values of three bins
+  
+  return myReal;
+}
+
+/*
+// This function computes the FFT multiple times
+double sampleData(int input_index)
+{
+  double myReal = 0;
+  for (int y = 0; y < MAXXX; y++)
+  {
+   for (int l = 0; l < SAMPLES; l++)
+    {
+      microseconds = micros();
+      
+      double temp = analogRead(CHANNEL); 
+      vReal[l] +=  ((temp * 3.3) / 1024) - 1.65;
+      vImag[l] += 0;
+      while(micros() < (microseconds + sampling_period_us))
+      {
+        //empty loop
+      }
+    }
+  
+  FFT.Compute(vReal, vImag, samples, FFT_FORWARD); 
+  FFT.ComplexToMagnitude(vReal, vImag, samples); 
+  } 
+  myReal = vReal[input_index]; 
+
+  for(int v = 0; v < SAMPLES; v++)
+  {
+    vReal[v] = vReal[v] / MAXXX;
+  }
+  
+  return myReal;
+}
+*/
+
+// This function reads the signal for 1 second and return the largest value read
+double read_Signal_One_Sec()
+{
+  double currentReal = 0, largestReal = 0, currentTime = 0;
+  
+  currentTime = micros();
+  while(micros() < (currentTime + 1000000)) // So, this while loop will run for 1 second
+  {
+    currentReal = sampleData(frequency_bin_index);
+    if (largestReal < currentReal)
+    {
+      largestReal = currentReal;
+    }
+  }
+  
+  return largestReal;
+}
+
+void scan_full_circle()
+{
   double realArray[SIZE_OF_ARRAY] = {0}; // This is the array where we will put the mag read from the sides
- 
+  
   // Spin 360 to read the signals from all the sides
   for (int i = 0; i < SIZE_OF_ARRAY; i++)
   { 
-    // Serial.println(i);
+    Serial.println(i);
     robotCCW();
     delay(CIRCLE_DELAY_IN_MS);
     robotStop();  
     realArray[i] = read_Signal_One_Sec(); //Array index i will hold the largest value read during a period of 1s
+    Serial.println(realArray[i]);
   }
   delay(500);
 
@@ -130,63 +274,141 @@ void loop() {
     robotStop();
     delay(250);
   }
-
-  if (frequency_bin_index == 40) // We are going towards the last beacon
-  {
-    
-  }
-  else
-  {
-    
-  }
-  
 }
 
-
-/********************************** FUNCTIONS **********************************/
-
-// This function computes the FFT
-double sampleData(int input_index)
+void scan_five_points()
 {
-  double myReal = 0;
-  for (int l = 0; l < SAMPLES; l++)
+  delay(500);
+  double realArray[5] = {0}; // This is the array where we will put the mag read from the sides
+  for ( int i = 0; i < 2; i++) // Move to the correct position
   {
-    microseconds = micros();
-    
-    double temp = analogRead(CHANNEL); 
-    vReal[l] =  ((temp * 3.3) / 1024) - 1.65;
-    vImag[l] = 0;
-    while(micros() < (microseconds + sampling_period_us))
+    robotCCW();
+    delay(CIRCLE_DELAY_IN_MS);
+    robotStop();
+    delay(250);   
+  }
+  delay(500);
+
+  for (int i = 0; i < 4; i++) 
+  { 
+    // Serial.println(i);
+    realArray[i] = read_Signal_One_Sec(); //Array index i will hold the largest value read during a period of 1s
+    robotCW();
+    delay(CIRCLE_DELAY_IN_MS);
+    robotStop();  
+  }
+  
+  realArray[4] = read_Signal_One_Sec();
+  
+  // Figure out which side of the signal gives the largest signal value
+  double maxValue = 0; 
+  int maxIndex = 0;
+  for (int j = 0; j < 5; j++)
+  {
+    if (realArray[j] >= maxValue)
     {
-      //empty loop
+      maxValue = realArray[j];
+      maxIndex = j;
     }
   }
-  
-  FFT.Compute(vReal, vImag, samples, FFT_FORWARD); /* Compute FFT */
-  FFT.ComplexToMagnitude(vReal, vImag, samples); /* Compute magnitudes */
-  myReal = vReal[input_index]; 
-  
-  return myReal;
+  delay(500);
+
+  if(maxIndex != 4)
+  {
+    if (maxIndex == 3)
+    {
+      robotCCW();
+      delay(CIRCLE_DELAY_IN_MS);
+      robotStop();   
+    }
+    if (maxIndex == 2)
+    {
+      for (int i = 0; i < 2; i++)
+      {
+        robotCCW();
+        delay(CIRCLE_DELAY_IN_MS);
+        robotStop();
+        delay(250);
+      }    
+    }
+    if (maxIndex == 1)
+    {
+      for (int i = 0; i < 3; i++)
+      {
+        robotCCW();
+        delay(CIRCLE_DELAY_IN_MS);
+        robotStop();
+        delay(250);
+      }    
+    }
+    if (maxIndex == 0)
+    {
+      for (int i = 0; i < 4; i++)
+      {
+        robotCCW();
+        delay(CIRCLE_DELAY_IN_MS);
+        robotStop();
+        delay(250);
+      }
+    }
+  }  
 }
 
-
-// This function reads the signal for 1 second and return the largest value read
-double read_Signal_One_Sec()
+void scan_three_points()
 {
-  double currentReal = 0, largestReal = 0;
-  int currentTime = 0;
-  currentTime = micros();
-  while(micros() < (currentTime + 1250000)) // So, this while loop will run for 1 second
+  delay(500);
+  double realArray[3] = {0}; // This is the array where we will put the mag read from the sides
+
+  robotCCW();
+  delay(CIRCLE_DELAY_IN_MS);
+  robotStop();
+  delay(500);   
+
+
+  for (int i = 0; i < 2; i++)
+  { 
+    // Serial.println(i);  
+    realArray[i] = read_Signal_One_Sec(); //Array index i will hold the largest value read during a period of 1s
+    robotCW();
+    delay(CIRCLE_DELAY_IN_MS);
+    robotStop();
+  }
+  realArray[2] = read_Signal_One_Sec();
+  
+  // Figure out which side of the signal gives the largest signal value
+  double maxValue = 0; 
+  int maxIndex = 0;
+  for (int j = 0; j < 3; j++)
   {
-    currentReal = sampleData(frequency_bin_index);
-    if (largestReal < currentReal)
+    if (realArray[j] >= maxValue)
     {
-      largestReal = currentReal;
+      maxValue = realArray[j];
+      maxIndex = j;
     }
   }
-  
-  return largestReal;
+  delay(500);
+
+  if(maxIndex != 2)
+  {
+    if (maxIndex == 1)
+    {
+      robotCCW();
+      delay(CIRCLE_DELAY_IN_MS);
+      robotStop();   
+    }
+    if (maxIndex == 0)
+    {
+      for (int i = 0; i < 2; i++)
+      {
+        robotCCW();
+        delay(CIRCLE_DELAY_IN_MS);
+        robotStop();
+        delay(250);
+      }  
+    }
+  }
 }
+
 
 // This function moves the robot in ClockWise Direction
 void robotCW()
@@ -216,10 +438,4 @@ void robotStop()
   analogWrite(4,76);
 }
 
-// This functin is to read from the ultrasonic
-void ultrasonic()
-{
-  duration = pulseIn(6, HIGH);    //measure time that is high
-  distance = duration*0.034/2;    //convert to centimeters
-}
 

@@ -7,7 +7,7 @@ arduinoFFT FFT = arduinoFFT();
 #define SAMPLING_FREQUENCY 32000 // The sampling frequency has to be ATLEAST 2x larger than the largest signal.
 #define SIZE_OF_ARRAY 8
 #define CIRCLE_DELAY_IN_MS 315
-
+#define MAXXX 4
 
 
 /**************************************FREQUENCY BIN INDEX MAPPING**************************************
@@ -57,6 +57,8 @@ double vImag[samples];
 double functionReal, largestReal;
 double realArray[8]; // This is the array where we will put the magnitude read from each of the 8 sides
 
+double movAvg [64][10] = {0};
+
 void setup() {
   sampling_period_us = round(1000000*(1.0/samplingFrequency));
   Serial.begin(115200);
@@ -76,15 +78,15 @@ void loop() {
   for (uint16_t m = 20; m < 41; m++)               
   {                                                            
     Serial.println(m); //Bin Index                               
-    double abscissa;                                            
+   double abscissa;                                            
     abscissa = ((m * 1.0 * SAMPLING_FREQUENCY) / SAMPLES);       
     Serial.print(abscissa, 2);                                 
     Serial.print("Hz: ");                                    
     Serial.println(vReal[m], 4); 
-    m++;                          
-  }                                                  
-  Serial.println("");                                      
-  delay(500);                                                     
+   m++;  
+  }                        
+                                    
+  delay(100);                                                     
 /*
  
   delay(1000); // Solves the problem of the for loop below skipping the first iteration when the board is reset
@@ -137,15 +139,15 @@ void loop() {
 // This function computes the FFT
 void sampleData()
 {
+  for (int y = 0; y < MAXXX; y++)
+  {
   for (int l = 0; l < SAMPLES; l++)
   {
     microseconds = micros();
-    analogReadRes(12);       // set the resolution to 10 bits
-    analogReadAveraging(2);       // set the resolution to 10 bits
+    
     double temp = analogRead(CHANNEL); 
     vReal[l] =  ((temp * 3.3) / 1024) - 1.65;
     vImag[l] = 0;
-    vReal[l] *= 100;
     while(micros() < (microseconds + sampling_period_us))
     {
       //empty loop
@@ -154,6 +156,12 @@ void sampleData()
   
   FFT.Compute(vReal, vImag, samples, FFT_FORWARD); /* Compute FFT */
   FFT.ComplexToMagnitude(vReal, vImag, samples); /* Compute magnitudes */
+  }
+  for(int v = 0; v < SAMPLES; v++)
+  {
+    vReal[v] = vReal[v]/4;
+  }
+  
   functionReal = vReal[FREQUENCY_BIN_INDEX]; 
 }
 
