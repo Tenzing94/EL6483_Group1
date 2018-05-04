@@ -85,10 +85,9 @@ void setup() {
 }
 
 void loop() {
-
   
-  PrintAllValues();
-  /*
+  //PrintAllValues();
+
   double counter1 = 0, counter2 = 0;
 
 
@@ -163,9 +162,8 @@ void loop() {
   robotStop();
   delay(TIME_STOPPED_RIGHT_AFTER_MOVING);
   ultrasonicFLAG = FALSE;
-  frequency_bin_index = frequency_bin_index + 8;
+  frequency_bin_index = frequency_bin_index + 2;
   
-*/  
   
 }
 
@@ -180,7 +178,7 @@ void PrintAllValues()
   currentTime = micros();
   while(micros() < (currentTime + 1000000)) // So, this while loop will run for 1 second
   {
-    read_Signal_One_Sec();
+    sampleData();
     for (int i = 0; i < samples; i++)
     {
       vTempReal[i] += vReal[i]; ///////////
@@ -190,10 +188,11 @@ void PrintAllValues()
   {
     vReal[j] = vTempReal[j];
   }
+
   for (uint16_t m = 20; m < 41; m++)               
   {                                                            
     Serial.println(m); //Bin Index                               
-   double abscissa;                                            
+    double abscissa;                                            
     abscissa = ((m * 1.0 * SAMPLING_FREQUENCY) / SAMPLES);       
     Serial.print(abscissa, 2);                                 
     Serial.print("Hz: ");                                    
@@ -201,9 +200,7 @@ void PrintAllValues()
    m++;  
   }                        
                                     
-  delay(100); 
-
-  
+  delay(100);   
 }
 
 
@@ -243,7 +240,7 @@ void sampleData()
   for(int i=0; i<samples; i++)
   {
       microseconds = micros();   
-
+      //analogReadAveraging(2);
       temp = analogRead(CHANNEL);
       vReal[i] =  ((temp * 3.3) / 2048) - 1.65;
       vImag[i] = 0;
@@ -255,7 +252,7 @@ void sampleData()
   FFT.Compute(vReal, vImag, samples, FFT_FORWARD); 
   FFT.ComplexToMagnitude(vReal, vImag, samples); 
 
-  threePointMovingAverage();
+  //threePointMovingAverage();
   
 }
 
@@ -269,7 +266,7 @@ void read_Signal_One_Sec()
   currentTime = micros();
   while(micros() < (currentTime + 1000000)) // So, this while loop will run for 1 second
   {
-    read_Signal_One_Sec();
+    sampleData();
     for (int i = 0; i < samples; i++)
     {
       vTempReal[i] += vReal[i]; ///////////
