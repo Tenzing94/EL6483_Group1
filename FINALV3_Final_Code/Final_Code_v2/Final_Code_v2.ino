@@ -324,7 +324,7 @@ void threePointMovingAverage()
 // This function is called inside PrintAllValues() and read_Signal_One_Sec().
 void sampleData()
 {
-  double temp = 0, myReal = 0;
+  double temp = 0;
   
   for(int i=0; i<samples; i++)
   {
