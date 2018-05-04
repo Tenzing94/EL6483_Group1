@@ -85,6 +85,10 @@ void setup() {
 }
 
 void loop() {
+
+  
+  PrintAllValues();
+  /*
   double counter1 = 0, counter2 = 0;
 
 
@@ -161,12 +165,47 @@ void loop() {
   ultrasonicFLAG = FALSE;
   frequency_bin_index = frequency_bin_index + 8;
   
-  
+*/  
   
 }
 
 
 /********************************** FUNCTIONS **********************************/
+
+void PrintAllValues()
+{
+  int currentTime = 0;
+  double vTempReal[samples] = {0};
+  
+  currentTime = micros();
+  while(micros() < (currentTime + 1000000)) // So, this while loop will run for 1 second
+  {
+    read_Signal_One_Sec();
+    for (int i = 0; i < samples; i++)
+    {
+      vTempReal[i] += vReal[i]; ///////////
+    }
+  }
+  for (int j = 0; j < samples; j++)
+  {
+    vReal[j] = vTempReal[j];
+  }
+  for (uint16_t m = 20; m < 41; m++)               
+  {                                                            
+    Serial.println(m); //Bin Index                               
+   double abscissa;                                            
+    abscissa = ((m * 1.0 * SAMPLING_FREQUENCY) / SAMPLES);       
+    Serial.print(abscissa, 2);                                 
+    Serial.print("Hz: ");                                    
+    Serial.println(vReal[m], 4); 
+   m++;  
+  }                        
+                                    
+  delay(100); 
+
+  
+}
+
 
 // This functin is to read from the ultrasonic
 void ultrasonic()
@@ -197,7 +236,7 @@ void threePointMovingAverage()
 }
 
 // This function computes the FFT
-double sampleData(int input_index)
+void sampleData()
 {
   double temp = 0, myReal = 0;
   
@@ -217,27 +256,29 @@ double sampleData(int input_index)
   FFT.ComplexToMagnitude(vReal, vImag, samples); 
 
   threePointMovingAverage();
-
-  myReal = vReal[input_index];
-  //myReal = (vReal[input_index] + vReal[input_index + 1] + vReal[input_index - 1]) / 3; averages the values of three bins
   
-  return myReal;
 }
 
 
 // This function reads the signal for 1 second and return the largest value read
-double read_Signal_One_Sec()
+void read_Signal_One_Sec()
 {
-  double currentReal = 0, currentTime = 0;
+  int currentTime = 0;
+  double vTempReal[samples] = {0};
   
   currentTime = micros();
-  while(micros() < (currentTime + 1500000)) // So, this while loop will run for 1 second
+  while(micros() < (currentTime + 1000000)) // So, this while loop will run for 1 second
   {
-    currentReal += sampleData(frequency_bin_index);
+    read_Signal_One_Sec();
+    for (int i = 0; i < samples; i++)
+    {
+      vTempReal[i] += vReal[i]; ///////////
+    }
   }
-
-  //currentReal = currentReal/1.5;
-  return currentReal;
+  for (int j = 0; j < samples; j++)
+  {
+    vReal[j] = vTempReal[j];
+  }
 }
 
 void scan_full_circle()
@@ -251,7 +292,8 @@ void scan_full_circle()
     robotCCW();
     delay(CIRCLE_DELAY_IN_MS);
     robotStop();  
-    realArray[i] = read_Signal_One_Sec(); //Array index i will hold the largest value read during a period of 1s
+    read_Signal_One_Sec(); //Array index i will hold the largest value read during a period of 1s
+    realArray[i] = vReal[frequency_bin_index];
     //Serial.println(realArray[i]);
   }
   delay(500);
@@ -295,13 +337,15 @@ void scan_five_points()
   for (int i = 0; i < 4; i++) 
   { 
     // Serial.println(i);
-    realArray[i] = read_Signal_One_Sec(); //Array index i will hold the largest value read during a period of 1s
+    read_Signal_One_Sec(); //Array index i will hold the largest value read during a period of 1s
+    realArray[i] = vReal[frequency_bin_index];
     robotCW();
     delay(CIRCLE_DELAY_IN_MS);
     robotStop();  
   }
   
-  realArray[4] = read_Signal_One_Sec();
+  read_Signal_One_Sec();
+  realArray[4] = vReal[frequency_bin_index];
   
   // Figure out which side of the signal gives the largest signal value
   double maxValue = 0; 
@@ -371,12 +415,14 @@ void scan_three_points(double moving_Time)
   for (int i = 0; i < 2; i++)
   { 
     // Serial.println(i);  
-    realArray[i] = read_Signal_One_Sec(); //Array index i will hold the largest value read during a period of 1s
+    read_Signal_One_Sec(); //Array index i will hold the largest value read during a period of 1s
+    realArray[i] = vReal[frequency_bin_index];
     robotCW();
     delay(moving_Time);
     robotStop();
   }
-  realArray[2] = read_Signal_One_Sec();
+  read_Signal_One_Sec();
+  realArray[2] = vReal[frequency_bin_index];
   
   // Figure out which side of the signal gives the largest signal value
   double maxValue = 0; 

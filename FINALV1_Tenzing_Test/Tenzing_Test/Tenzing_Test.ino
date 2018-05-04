@@ -157,10 +157,6 @@ void sampleData()
   FFT.Compute(vReal, vImag, samples, FFT_FORWARD); /* Compute FFT */
   FFT.ComplexToMagnitude(vReal, vImag, samples); /* Compute magnitudes */
   }
-  for(int v = 0; v < SAMPLES; v++)
-  {
-    vReal[v] = vReal[v]/4;
-  }
   
   functionReal = vReal[FREQUENCY_BIN_INDEX]; 
 }

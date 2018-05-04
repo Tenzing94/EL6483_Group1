@@ -1,7 +1,7 @@
 #include "arduinoFFT.h"
 
 #define SAMPLES   (uint16_t) 64
-#define SAMPLE_PERIOD (float) 31.25
+#define SAMPLE_PERIOD (float) 31.25  // 1 / 32000
 #define SAMPLE_FREQUENCY (float) 32000
 
 arduinoFFT FFT = arduinoFFT();
@@ -47,6 +47,7 @@ void loop()
     FFT.ComplexToMagnitude(vReal2, vImag2, SAMPLES);
     Serial.println("------------------------");
 
+    delay(250);
     for (uint16_t k = 0; k < (SAMPLES / 2); k++)
     {
       double abscissa;
