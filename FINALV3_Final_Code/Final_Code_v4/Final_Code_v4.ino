@@ -64,7 +64,7 @@ arduinoFFT FFT = arduinoFFT();
 #define FREQ_BIN_INDEX 20 // Robot starts by detecting the 5kHz Beacon
 
 int frequency_bin_index = FREQ_BIN_INDEX; // This variable is incremented by 2 once we reach the current beacon
-
+int lowest_index_considered = FREQ_BIN_INDEX;
  
 // Variables for FFT 
 const uint16_t samples = SAMPLES; // This value MUST ALWAYS be a power of 2
@@ -276,6 +276,7 @@ void loop() {
   // So now we have to go to the next beacon 
   ultrasonicFLAG = FALSE; // reset the flag to FALSE
   frequency_bin_index = frequency_bin_index + 2; // Increment the index to the next beacon. Eg. 5K to 5.5K 
+  lowest_index_considered = frequency_bin_index;
   
 }
 
@@ -409,6 +410,8 @@ void read_Signal_One_Sec()
 void scan_full_circle()
 {
   double realArray[SIZE_OF_ARRAY] = {0}; // This is the array where we will put the mag read from the sides
+  int maxFreq_index = 0, maxFreq_value = 0;
+  int maxFreq_index_per_dir[SIZE_OF_ARRAY] = {0};
   
   // Spin 360 to read the signals from all the sides
   for (int i = 0; i < SIZE_OF_ARRAY; i++)
@@ -418,7 +421,16 @@ void scan_full_circle()
     delay(CIRCLE_DELAY_IN_MS);
     robotStop();  
     read_Signal_One_Sec(); //Array index i will hold the largest value read during a period of 1s
-    realArray[i] = vReal[frequency_bin_index];
+    for (int j = lowest_index_considered; j < 39; j++)
+    {
+      if(vReal[j] >= maxFreq_value)
+      {
+        maxFreq_value = vReal[j];
+        maxFreq_index = j;
+      }
+    }
+    realArray[i] = maxFreq_value;
+    maxFreq_index_per_dir[i] = maxFreq_index; 
     //Serial.println(realArray[i]);
   }
   delay(500);
@@ -431,11 +443,12 @@ void scan_full_circle()
     if (realArray[j] >= maxValue)
     {
       maxValue = realArray[j];
-      maxIndex = j;
+      maxIndex = maxFreq_index_per_dir[j];
+      frequency_bin_index = maxFreq_index_per_dir[j];     
     }
   }
   //Serial.println(maxIndex);
-
+  
   // Once we have found the direction of the signal, we move towards it.
   for(int k = 0; k <= maxIndex; k++)
   {
@@ -451,7 +464,7 @@ void right_maneuver_avoid_beacon()
   double UltrasonicArray[SIZE_OF_ARRAY] = {0};
 
   robotCW();
-  delay(CIRCLE_DELAY_IN_MS*1.5);
+  delay(CIRCLE_DELAY_IN_MS);
   robotStop();
   ultrasonic();
   if (distance < 50)
@@ -460,7 +473,7 @@ void right_maneuver_avoid_beacon()
     {
       delay(250);
       robotCCW();
-      delay(CIRCLE_DELAY_IN_MS*1.5);
+      delay(CIRCLE_DELAY_IN_MS);
       robotStop();
     }
     ultrasonic();
@@ -468,7 +481,7 @@ void right_maneuver_avoid_beacon()
     {
       delay(250);
       robotCCW();
-      delay(CIRCLE_DELAY_IN_MS*1.5);
+      delay(CIRCLE_DELAY_IN_MS);
       robotStop();
     }          
   }

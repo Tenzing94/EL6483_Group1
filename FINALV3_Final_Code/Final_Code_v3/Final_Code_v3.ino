@@ -10,11 +10,10 @@ arduinoFFT FFT = arduinoFFT();
 
 #define SAMPLES 128
 #define SAMPLING_FREQUENCY 32000 // The sampling frequency has to be ATLEAST 2x larger than the largest signal.
+#define SIZE_OF_ARRAY 12 
 
 #define TIME_STOPPED_RIGHT_AFTER_MOVING 250 
 #define TIME_MOVING_RIGHT_AFTER_DIR_FOUND 800 //After we found direction, how long we move before looking for another direction.
-
-#define ULTRASONIC_STOP_DISTANCE_CM 15
 
 #define TRUE 1
 #define FALSE 0
@@ -26,12 +25,10 @@ arduinoFFT FFT = arduinoFFT();
  *   12           ---    255
  *   16           ---    225
  */
-#define SIZE_OF_ARRAY 8
-#define CIRCLE_DELAY_IN_MS 315
-#define FIVE_POINT_STOP_MS 200
+#define SIZE_OF_ARRAY 12
+#define CIRCLE_DELAY_IN_MS 250
+#define FIVE_POINT_STOP_MS 250
 #define THREE_POINT_STOP_MS 200
-
-#define THREE_POINT_WHILE_LOOP_COUNTER 3
 
 /**************************************FREQUENCY BIN INDEX MAPPING**************************************
  * 
@@ -64,6 +61,7 @@ arduinoFFT FFT = arduinoFFT();
 #define FREQ_BIN_INDEX 20 // Robot starts by detecting the 5kHz Beacon
 
 int frequency_bin_index = FREQ_BIN_INDEX; // This variable is incremented by 2 once we reach the current beacon
+int lowest_index_considered = FREQ_BIN_INDEX;
 
  
 // Variables for FFT 
@@ -85,7 +83,6 @@ int distance;
 // Flag that is set when the Ultrasonic detects an object. 
 int ultrasonicFLAG = FALSE;
 
-int led = 13; // LED
 
 /********************************** FUNCTION PROTOTYPES **********************************/
 
@@ -140,8 +137,6 @@ void setup() {
   // For Ultrasonic Sensor
   pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
   pinMode(echoPin, INPUT); // Sets the echoPin as an Input
-
-  pinMode(led, OUTPUT);   
   
 }
 
@@ -152,27 +147,12 @@ void loop() {
   //PrintAllValues();
 
   unsigned long counter1 = 0, counter2 = 0;
-  int while_loop_counter = 0;
 
 
   delay(1000); // Solves the problem of the for loop below skipping the first iteration when the board is reset
-  
-  digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
-  delay(250);               // wait for a second
-  digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
-  
+
   scan_full_circle(); // Find the general direction of the signal.
 
-  ultrasonic(); // Call ultrasonic() function once. This function will update the 'distance' global variable
-
-  if (distance < ULTRASONIC_STOP_DISTANCE_CM)
-  {
-    right_maneuver_avoid_beacon();
-    scan_full_circle(); // Find the general direction of the signal.
-    
-  }
-
-  
   // After the general direction is found, stop for a bit.
   robotStop();
   delay(TIME_STOPPED_RIGHT_AFTER_MOVING);
@@ -205,15 +185,6 @@ void loop() {
   {
     scan_five_directions(); // Scan 5 directions. 
 
-    ultrasonic(); // Call ultrasonic() function once. This function will update the 'distance' global variable
-
-    if (distance < ULTRASONIC_STOP_DISTANCE_CM)
-    {
-      right_maneuver_avoid_beacon();
-      scan_full_circle(); // Find the general direction of the signal.
-      scan_five_directions(); // Scan 5 directions.         
-    }
-
     // After the direction is found, stop for a bit.
     robotStop();
     delay(TIME_STOPPED_RIGHT_AFTER_MOVING);
@@ -227,25 +198,24 @@ void loop() {
       ultrasonic();
       Serial.println(distance);
       counter2 = millis();
-      
       if (distance <= ULTRASONIC_STOP_DISTANCE_CM)
       {
         ultrasonicFLAG = TRUE; // If somehow we detect the beacon, set the flag.
       }
-      
     }
     // After moving, stop for a bit.
     robotStop();
     delay(TIME_STOPPED_RIGHT_AFTER_MOVING);
   }
-  
+
   // If the flag is set in the previous while loop, this if statement is skipped.
-  while (ultrasonicFLAG == FALSE && (while_loop_counter < THREE_POINT_WHILE_LOOP_COUNTER))
+  while (ultrasonicFLAG == FALSE)
   {
     // Till now, we did a full circle, move a bit, and 5 directions, move a bit.
     // The Ultrasonic still did not detect anything.
     // So now we keep doing: take 3 directions, move a bit, 3 directions, move a bit,...
     // unitl the Ultrasonic detect something in front of it
+    
     scan_three_directions(THREE_POINT_STOP_MS);
 
     // After the direction is found, stop for a bit.
@@ -267,15 +237,17 @@ void loop() {
         ultrasonicFLAG = TRUE; // If somehow we detect the beacon, set the flag. This will break the while loop
       }
     }
-    while_loop_counter++;
-    robotStop();
-    delay(TIME_STOPPED_RIGHT_AFTER_MOVING);
   }
+  robotStop();
+  delay(TIME_STOPPED_RIGHT_AFTER_MOVING);
 
   // Once we reach this point, it means that the Ultrasonic detected the beacon. 
   // So now we have to go to the next beacon 
   ultrasonicFLAG = FALSE; // reset the flag to FALSE
-  frequency_bin_index = frequency_bin_index + 2; // Increment the index to the next beacon. Eg. 5K to 5.5K 
+  frequency_bin_index = frequency_bin_index + 2; // Increment the index to the next beacon. Eg. 5K to 5.5K
+  lowest_index_considered = frequency_bin_index;
+  
+  
   
 }
 
@@ -409,6 +381,9 @@ void read_Signal_One_Sec()
 void scan_full_circle()
 {
   double realArray[SIZE_OF_ARRAY] = {0}; // This is the array where we will put the mag read from the sides
+  int maneuverFLAG = FALSE;
+  int maxFreq_index = 0, maxFreq_value = 0;
+  int maxFreq_index_per_dir[SIZE_OF_ARRAY] = {0};
   
   // Spin 360 to read the signals from all the sides
   for (int i = 0; i < SIZE_OF_ARRAY; i++)
@@ -418,7 +393,16 @@ void scan_full_circle()
     delay(CIRCLE_DELAY_IN_MS);
     robotStop();  
     read_Signal_One_Sec(); //Array index i will hold the largest value read during a period of 1s
-    realArray[i] = vReal[frequency_bin_index];
+    for (int j = lowest_index_considered; j < 39; j++)
+    {
+      if(vReal[j] >= maxFreq_value)
+      {
+        maxFreq_value = vReal[j];
+        maxFreq_index = j;
+      }
+    }
+    realArray[i] = maxFreq_value;
+    maxFreq_index_per_dir[i] = maxFreq_index; 
     //Serial.println(realArray[i]);
   }
   delay(500);
@@ -431,11 +415,51 @@ void scan_full_circle()
     if (realArray[j] >= maxValue)
     {
       maxValue = realArray[j];
-      maxIndex = j;
+      maxIndex = maxFreq_index_per_dir[j];
+      frequency_bin_index = maxFreq_index_per_dir[j];     
     }
   }
   //Serial.println(maxIndex);
 
+  if ((frequency_bin_index != 20) && (maxIndex == ( 9 || 10 || 11))) // Make the manuever to the right to avoid the beacon
+  {
+    maneuverFLAG = TRUE;
+    right_maneuver_avoid_beacon(); 
+  }
+  else if ((frequency_bin_index != 20) && (maxIndex == ( 0 || 1))) // Make the manuever to the left to avoid the beacon
+  {
+    maneuverFLAG = TRUE;
+    left_maneuver_avoid_beacon(); 
+  }
+  if (maneuverFLAG == TRUE)
+  {
+    // Spin 360 to read the signals from all the sides
+    for (int i = 0; i < SIZE_OF_ARRAY; i++)
+    { 
+      //Serial.println(i);
+      robotCCW();
+      delay(CIRCLE_DELAY_IN_MS);
+      robotStop();  
+      read_Signal_One_Sec(); //Array index i will hold the largest value read during a period of 1s
+      realArray[i] = vReal[frequency_bin_index];
+      //Serial.println(realArray[i]);
+    }
+    delay(500);
+
+    // Figure out which side of the signal gives the largest signal value
+    double maxValue = 0; 
+    int maxIndex = 0;
+    for (int j = 0; j < SIZE_OF_ARRAY; j++)
+    {
+      if (realArray[j] >= maxValue)
+      {
+        maxValue = realArray[j];
+        maxIndex = j;
+      }
+    }
+    maneuverFLAG = FALSE;
+  }
+  
   // Once we have found the direction of the signal, we move towards it.
   for(int k = 0; k <= maxIndex; k++)
   {
@@ -448,42 +472,21 @@ void scan_full_circle()
 /////////////////////////////////////////////////////////////////////////////////////////
 void right_maneuver_avoid_beacon()
 {
-  double UltrasonicArray[SIZE_OF_ARRAY] = {0};
-
   robotCW();
-  delay(CIRCLE_DELAY_IN_MS*1.5);
+  delay(500);
+  robotForward();
+  delay(500);
   robotStop();
-  ultrasonic();
-  if (distance < 50)
-  {
-    for (int i = 0; i < 2; i++)
-    {
-      delay(250);
-      robotCCW();
-      delay(CIRCLE_DELAY_IN_MS*1.5);
-      robotStop();
-    }
-    ultrasonic();
-    if (distance < 50)
-    {
-      delay(250);
-      robotCCW();
-      delay(CIRCLE_DELAY_IN_MS*1.5);
-      robotStop();
-    }          
-  }
-  delay(250);
-  
-  unsigned long counter1, counter2;
-  counter1 = millis();
-  counter2 = millis();
-  while(distance > ULTRASONIC_STOP_DISTANCE_CM && ((counter2 - counter1) < 1000))
-  {
-    robotForward();
-    counter2 = millis();
-  }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+void left_maneuver_avoid_beacon()
+{
+  robotCCW();
+  delay(500);
+  robotForward();
+  delay(500);
   robotStop();
-  delay(250);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -565,7 +568,7 @@ void scan_five_directions()
         delay(250);
       }
     }
-  }
+  }  
 }
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -659,8 +662,8 @@ void robotForward()
 // This function moves the robot Forward in a slower speed compared to robotForward()
 void robotForwardSlow()
 {
-  analogWrite(3,62);
-  analogWrite(4,62);
+  analogWrite(3,66);
+  analogWrite(4,66);
 }
 
 // This function Stops the robot
