@@ -19,6 +19,7 @@ arduinoFFT FFT = arduinoFFT();
 #define TRUE 1
 #define FALSE 0
 
+#define STOP_CODE 10000000000000
 
 /**************************************CIRCLE SPEED**************************************
  * Size of Array  ---  Tested Speed (NOTE: You may need to play around with this number and tune it. Change it by at most +-15)
@@ -27,7 +28,7 @@ arduinoFFT FFT = arduinoFFT();
  *   16           ---    225
  */
 #define SIZE_OF_ARRAY 8
-#define CIRCLE_DELAY_IN_MS 315
+#define CIRCLE_DELAY_IN_MS 323
 #define FIVE_POINT_STOP_MS 200
 #define THREE_POINT_STOP_MS 200
 
@@ -164,7 +165,9 @@ void loop() {
   scan_full_circle(); // Find the general direction of the signal.
 
   ultrasonic(); // Call ultrasonic() function once. This function will update the 'distance' global variable
-
+  robotStop();
+  delay(TIME_STOPPED_RIGHT_AFTER_MOVING);
+  
   if (distance < ULTRASONIC_STOP_DISTANCE_CM)
   {
     right_maneuver_avoid_beacon();
@@ -275,6 +278,14 @@ void loop() {
   // Once we reach this point, it means that the Ultrasonic detected the beacon. 
   // So now we have to go to the next beacon 
   ultrasonicFLAG = FALSE; // reset the flag to FALSE
+
+  if (frequency_bin_index >= 38) // If the signal is 9.5K, and we reached this part of the code, STOP
+  {
+    robotStop();
+    digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
+    delay(STOP_CODE);   
+  }
+  
   frequency_bin_index = frequency_bin_index + 2; // Increment the index to the next beacon. Eg. 5K to 5.5K 
   lowest_index_considered = frequency_bin_index;
   
@@ -410,12 +421,14 @@ void read_Signal_One_Sec()
 void scan_full_circle()
 {
   double realArray[SIZE_OF_ARRAY] = {0}; // This is the array where we will put the mag read from the sides
-  int maxFreq_index = 0, maxFreq_value = 0;
+
   int maxFreq_index_per_dir[SIZE_OF_ARRAY] = {0};
   
   // Spin 360 to read the signals from all the sides
   for (int i = 0; i < SIZE_OF_ARRAY; i++)
   { 
+    int maxFreq_index = 0;
+    double maxFreq_value = 0;
     //Serial.println(i);
     robotCCW();
     delay(CIRCLE_DELAY_IN_MS);
@@ -443,8 +456,10 @@ void scan_full_circle()
     if (realArray[j] >= maxValue)
     {
       maxValue = realArray[j];
-      maxIndex = maxFreq_index_per_dir[j];
-      frequency_bin_index = maxFreq_index_per_dir[j];     
+      maxIndex = j;
+      frequency_bin_index = maxFreq_index_per_dir[j];
+      Serial.println(realArray[j]);
+      Serial.println(j);
     }
   }
   //Serial.println(maxIndex);

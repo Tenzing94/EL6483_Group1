@@ -204,7 +204,7 @@ void loop() {
   if (ultrasonicFLAG == FALSE)
   {
     scan_five_directions(); // Scan 5 directions. 
-
+/*
     ultrasonic(); // Call ultrasonic() function once. This function will update the 'distance' global variable
 
     if (distance < ULTRASONIC_STOP_DISTANCE_CM)
@@ -213,7 +213,7 @@ void loop() {
       scan_full_circle(); // Find the general direction of the signal.
       scan_five_directions(); // Scan 5 directions.         
     }
-
+*/
     // After the direction is found, stop for a bit.
     robotStop();
     delay(TIME_STOPPED_RIGHT_AFTER_MOVING);
@@ -267,6 +267,11 @@ void loop() {
         ultrasonicFLAG = TRUE; // If somehow we detect the beacon, set the flag. This will break the while loop
       }
     }
+    ultrasonic();
+    if (distance <= ULTRASONIC_STOP_DISTANCE_CM)
+    {
+      ultrasonicFLAG = TRUE;
+    }
     while_loop_counter++;
     robotStop();
     delay(TIME_STOPPED_RIGHT_AFTER_MOVING);
@@ -275,6 +280,14 @@ void loop() {
   // Once we reach this point, it means that the Ultrasonic detected the beacon. 
   // So now we have to go to the next beacon 
   ultrasonicFLAG = FALSE; // reset the flag to FALSE
+
+  if (frequency_bin_index >= 38) // If the signal is 9.5K, and we reached this part of the code, STOP
+  {
+    robotStop();
+    digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
+    delay(STOP_CODE);   
+  }
+  
   frequency_bin_index = frequency_bin_index + 2; // Increment the index to the next beacon. Eg. 5K to 5.5K 
   
 }
