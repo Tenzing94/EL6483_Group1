@@ -27,12 +27,13 @@
 // lcd display library 
 #include "Adafruit_GFX.h"
 #include "Adafruit_SSD1306.h"
+
 #define OLED_RESET 4
 Adafruit_SSD1306 display(OLED_RESET);
 
 arduinoFFT FFT = arduinoFFT();
-#define CHANNEL A0
 
+#define CHANNEL A0
 #define SAMPLES 128
 #define SAMPLING_FREQUENCY 32000 // The sampling frequency has to be ATLEAST 2x larger than the largest signal.
 
