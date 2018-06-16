@@ -2,12 +2,12 @@
 ## EL-GY 6483 "Real Time Embedded Systems" - Final Project
 
 ### Members
-|NAME            |NYU ID  |
-|:---------------|:-------|
-|Tenzing Rabgyal | tr1440 |
-|Mohammad        | mra413 |
-|Deliang         | dw2331 |
-|John Lee        | jjl624 |
+|NAME            |NYU ID          |
+|:---------------|:---------------|
+|Tenzing Rabgyal | tr1440@nyu.edu |
+|Mohammad        | mra413@nyu.edu |
+|Deliang         | dw2331@nyu.edu |
+|John Lee        | jjl624@nyu.edu |
 
 ### Project Requirements
 
