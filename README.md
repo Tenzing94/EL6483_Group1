@@ -1,9 +1,11 @@
 # EL6483_Group1
-## Group1 Final Project
+## EL-GY 6483 "Real Time Embedded Systems" - Final Project
 
-### Members:
-* NAME - NYU ID:
-* Tenzing Rabgyal - tr1440,
-* Mohammad - mra413,
-* Deliang - dw2331,
-* John Lee - jjl624
+### Group Number: 1
+### Members
+|NAME            |NYU ID  |
+|:---------------|:-------|
+|Tenzing Rabgyal | tr1440 |
+|Mohammad        | mra413 |
+|Deliang         | dw2331 |
+|John Lee        | jjl624 |
