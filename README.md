@@ -1,7 +1,7 @@
 # EL6483_Group1
 ## EL-GY 6483 "Real Time Embedded Systems" - Final Project
 
-### Members
+### Group Members
 |NAME            |NYU ID          |
 |:---------------|:---------------|
 |Tenzing Rabgyal | tr1440@nyu.edu |
@@ -19,7 +19,7 @@
 3. The time calculation will begin when the team pressed the “Go” button and will conclude when the visual indication of completion is visible. The time recorded for each team is marked after any part of the vehicle passes the first edge of the finish line.
 4. Each team will have 2 tries to complete the task.
 5. All source code must be submitted.
-#### Equipments
+#### Equipment List
 * Teensy 3.2 Microcontroller (w/ 32-bit ARM processor)
 * MAX4466 Microphone Amplifier ([Link](https://www.adafruit.com/product/1063))
 * PS1240 Piezo Buzzer ([Link](https://www.adafruit.com/product/160))
