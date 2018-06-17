@@ -5,8 +5,8 @@
 |NAME            |NYU ID          |
 |:---------------|:---------------|
 |Tenzing Rabgyal | tr1440@nyu.edu |
-|Mohammad        | mra413@nyu.edu |
-|Deliang         | dw2331@nyu.edu |
+|Mohammad Abbasi | mra413@nyu.edu |
+|Deliang Wang    | dw2331@nyu.edu |
 |John Lee        | jjl624@nyu.edu |
 
 ### Project Requirements
