@@ -12,7 +12,7 @@
 ### Project Requirements
 
 #### Objective
->This project involves navigating a vehicle through a minefield by using audio beacons of fixed frequencies located throughout the field. The vehicle will start at a fixed location in the field. The mission is to locate the “next” audio beacon and steer the vehicle toward that beacon while monitoring for the next beacon. The vehicle should continue to search each consecutive beacon until the final beacon is located, indicating the vehicle has exited the minefield. During the journey, the vehicle may not collide with any of the beacons and must steer clear.
+This project involves navigating a vehicle through a minefield by using audio beacons of fixed frequencies located throughout the field. The vehicle will start at a fixed location in the field. The mission is to locate the “next” audio beacon and steer the vehicle toward that beacon while monitoring for the next beacon. The vehicle should continue to search each consecutive beacon until the final beacon is located, indicating the vehicle has exited the minefield. During the journey, the vehicle may not collide with any of the beacons and must steer clear.
 #### Rules
 1. You may use preassembled libraries for PWM signal generation and audio processing.
 2. One group will be tested at a time. The vehicle will be placed at the starting point, and the beacons will be turned on. There should be a “Go” button on the vehicle to start the journey to the finish line as well as a visual indication (LED) that the journey has ended.
